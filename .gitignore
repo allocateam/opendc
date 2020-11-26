@@ -15,4 +15,4 @@ database/opendc_testing/*
 keys.json
 
 # Traces
-traces/
+#traces/
