@@ -48,9 +48,21 @@ The arguments have the following meaning:
 #### View results
 
 After running the script a folder called `data` should be created in the current directory. The folder contains experiment results
-in the parquet format. To view parquet files you can install *parquet_tools*: `brew install parquet-tools`
+in the parquet format. 
+
+To view parquet files you can install *parquet_tools*
+
+##### Dev container
+
+To view experiment results:
+```bash
+parquet-tools csv data/experiments.parquet > ./data/experiments.csv
+```
+
+##### mac OS
+`brew install parquet-tools`
 
 To view experiment results:
 ```shell script
 parquet-tools cat --json data/experiments.parquet > ./data/experiments.json
-```  
+```
