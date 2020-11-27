@@ -2,18 +2,18 @@ version: "3.8"
 
 # Docker Compose overrides for development environments
 services:
-  frontend:
-    build:
-      args:
-        OPENDC_API_BASE_URL: http://localhost:8081
-    ports:
-      - "8080:80"
+  # frontend:
+  #   build:
+  #     args:
+  #       OPENDC_API_BASE_URL: http://localhost:8081
+  #   ports:
+  #     - "8080:80"
 
-  api:
-    ports:
-      - "8081:8081"
-    environment:
-      SENTRY_ENVIRONMENT: "development"
+  # api:
+  #   ports:
+  #     - "8081:8081"
+  #   environment:
+  #     SENTRY_ENVIRONMENT: "development"
 
   simulator:
     environment:
