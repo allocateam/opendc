@@ -21,7 +21,7 @@ docker build -t opendc-dev .
 
 ```bash
 # Start container
-docker run -dit -v /path/to/local/opendc:/home/opendc/ --name opendc-dev 4f24e31f722d bash
+docker run -dit -v /path/to/local/opendc:/home/opendc/ --name opendc-dev opendc-dev:latest bash
 ```
 
 ```bash
