@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 AtLarge Research
+ * Copyright (c) 2019 AtLarge Research
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,18 +19,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-rootProject.name = "opendc-simulator"
 
-include(":opendc-core")
-include(":opendc-compute:opendc-compute-core")
-include(":opendc-compute:opendc-compute-simulator")
-include(":opendc-workflows")
-include(":opendc-format")
-include(":opendc-experiments:opendc-experiments-sc18")
-include(":opendc-experiments:opendc-experiments-sc20")
-include(":opendc-experiments:opendc-experiments-allocateam")
-include(":opendc-runner-web")
-include(":opendc-simulator:opendc-simulator-core")
-include(":opendc-simulator:opendc-simulator-compute")
-include(":opendc-simulator:opendc-simulator-failures")
-include(":opendc-utils")
+description = "Experiments for the Allocateam group"
+
+/* Build configuration */
+plugins {
+    `kotlin-library-convention`
+    application
+}
+
+application {
+    mainClassName = "org.opendc.experiments.allocateam.MainKt"
+    applicationDefaultJvmArgs = listOf("-Xms2500M")
+}
+
+dependencies {
+    api(project(":opendc-core"))
+
+    implementation("com.github.ajalt:clikt:2.6.0")
+    implementation("io.github.microutils:kotlin-logging:1.7.9")
+
+    runtimeOnly("org.apache.logging.log4j:log4j-slf4j-impl:2.13.1")
+
+    testImplementation("org.junit.jupiter:junit-jupiter-api:${Library.JUNIT_JUPITER}")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${Library.JUNIT_JUPITER}")
+    testImplementation("org.junit.platform:junit-platform-launcher:${Library.JUNIT_PLATFORM}")
+}
