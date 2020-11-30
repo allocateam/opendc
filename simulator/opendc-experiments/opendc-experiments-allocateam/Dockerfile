@@ -8,4 +8,8 @@ RUN apt update && \
 # parquet-tools csv data/experiments.parquet > ./data/experiments.csv
 RUN pip3 install parquet-tools
 
+# Install requirements for plotting tool
+COPY tools/plot/requirements.txt .
+RUN pip3 install -r requirements.txt
+
 CMD bash
