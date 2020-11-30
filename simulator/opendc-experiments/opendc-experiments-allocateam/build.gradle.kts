@@ -35,6 +35,8 @@ application {
 
 dependencies {
     api(project(":opendc-core"))
+    implementation(project(":opendc-format"))
+    implementation(project(":opendc-experiments:opendc-experiments-sc20"))
 
     implementation("com.github.ajalt:clikt:2.6.0")
     implementation("io.github.microutils:kotlin-logging:1.7.9")
