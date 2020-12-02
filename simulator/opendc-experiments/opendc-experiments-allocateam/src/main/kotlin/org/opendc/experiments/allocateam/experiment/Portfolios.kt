@@ -10,10 +10,11 @@ public class SmokeTestPortfolio(parent: Experiment, id: Int) : Portfolio(parent,
     )
 
     override val workloads: List<Workload> = listOf(
-        Workload("pegasus_p4", 1.0)
+        // Workload("pegasus_p4", 1.0),
+        Workload("bitbrains-small", 1.0)
     )
 
     override val allocationPolicies: List<String> = listOf(
-        "random"
+        "mem"
     )
 }

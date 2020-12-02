@@ -22,21 +22,21 @@ public class ExperimentCli : CliktCommand(name = "allocateam") {
      * The path to the directory where the topology descriptions are located.
      */
     private val environmentPath by option("--environment-path", help = "path to the environment directory")
-        .file(canBeFile = false)
+        .file(canBeFile = false, mustExist = true)
         .required()
 
     /**
      * The path to the directory where the traces are located.
      */
     private val tracePath by option("--trace-path", help = "path to the traces directory")
-        .file(canBeFile = false)
+        .file(canBeFile = false, mustExist = true)
         .required()
 
     /**
      * The path to the output directory.
      */
     private val output by option("-O", "--output", help = "path to the output directory")
-        .file(canBeFile = false)
+        .file(canBeFile = false, mustBeWritable = true)
         .defaultLazy { File("data") }
 
     /**
@@ -81,8 +81,6 @@ public class ExperimentCli : CliktCommand(name = "allocateam") {
             scheduler.close()
             reporter.close()
         }
-
-        //val result = WtfTraceReader("/Users/gm/Downloads/Pegasus_P4_parquet")
     }
 }
 

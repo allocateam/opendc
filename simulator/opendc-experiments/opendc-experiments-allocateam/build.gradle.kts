@@ -36,12 +36,22 @@ application {
 dependencies {
     api(project(":opendc-core"))
     implementation(project(":opendc-format"))
+    implementation(project(":opendc-workflows"))
+    implementation(project(":opendc-simulator:opendc-simulator-core"))
+    implementation(project(":opendc-compute:opendc-compute-simulator"))
+
     implementation(project(":opendc-experiments:opendc-experiments-sc20"))
 
     implementation("com.github.ajalt:clikt:2.6.0")
     implementation("io.github.microutils:kotlin-logging:1.7.9")
 
     runtimeOnly("org.apache.logging.log4j:log4j-slf4j-impl:2.13.1")
+
+    implementation("org.apache.parquet:parquet-avro:1.11.0")
+    implementation("org.apache.hadoop:hadoop-client:3.2.1") {
+        exclude(group = "org.slf4j", module = "slf4j-log4j12")
+        exclude(group = "log4j")
+    }
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:${Library.JUNIT_JUPITER}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${Library.JUNIT_JUPITER}")
