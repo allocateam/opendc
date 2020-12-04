@@ -1,12 +1,13 @@
 package org.opendc.experiments.allocateam.experiment
 
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.test.TestCoroutineScope
 import mu.KotlinLogging
 import org.opendc.compute.core.metal.service.ProvisioningService
+import org.opendc.experiments.allocateam.policies.MinMaxResourceSelectionPolicy
+import org.opendc.experiments.sc20.experiment.monitor.ParquetExperimentMonitor
 import org.opendc.experiments.sc20.runner.TrialExperimentDescriptor
 import org.opendc.experiments.sc20.runner.execution.ExperimentExecutionContext
 import org.opendc.format.environment.sc18.Sc18EnvironmentReader
@@ -28,26 +29,41 @@ import kotlin.math.max
  */
 private val logger = KotlinLogging.logger {}
 
-public data class RunSC18(override val parent: Scenario, val id: Int, val seed: Int) : TrialExperimentDescriptor() {
+public data class Run(override val parent: Scenario, val id: Int, val seed: Int) : TrialExperimentDescriptor() {
     @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun invoke(context: ExperimentExecutionContext) {
         val experiment = parent.parent.parent
         val testScope = TestCoroutineScope()
         val clock = DelayControllerClockAdapter(testScope)
 
+        val monitor = ParquetExperimentMonitor(
+            parent.parent.parent.output,
+            "portfolio_id=${parent.parent.id}/scenario_id=${parent.id}/run_id=$id",
+            parent.parent.parent.bufferSize
+        )
+
         var total = 0
         var finished = 0
+
+        val allocationPolicy = when (parent.allocationPolicy) {
+            "first-fit" -> FirstFitResourceSelectionPolicy
+            "min-max" -> MinMaxResourceSelectionPolicy
+            else -> throw IllegalArgumentException("Unknown policy ${parent.allocationPolicy}")
+        }
+
+        val environment = Sc18EnvironmentReader(object {}.javaClass.getResourceAsStream("/env/setup-test.json"))
+            .use { it.construct(testScope, clock) }
+
+        val provisioningService = environment.platforms[0].zones[0].services[ProvisioningService]
 
         val schedulerAsync = testScope.async {
             // TODO(gm): replace the environment format/reader with one that makes more sense in the context of this project
             // Environment file can be found in the `environments` folder under the topology name
-            val environment = Sc18EnvironmentReader(object {}.javaClass.getResourceAsStream("/env/setup-test.json"))
-                .use { it.construct(testScope, clock) }
 
             StageWorkflowService(
                 testScope,
                 clock,
-                environment.platforms[0].zones[0].services[ProvisioningService],
+                provisioningService,
                 mode = WorkflowSchedulerMode.Batch(100),
 
                 // Admit all jobs
@@ -66,12 +82,14 @@ public data class RunSC18(override val parent: Scenario, val id: Int, val seed: 
                 resourceFilterPolicy = FunctionalResourceFilterPolicy,
 
                 // Actual allocation policy (select the resource on which to place the task)
-                resourceSelectionPolicy = FirstFitResourceSelectionPolicy,
+                resourceSelectionPolicy = allocationPolicy,
             )
         }
 
+        // attach monitor to scheduler
         testScope.launch {
             val scheduler = schedulerAsync.await()
+
             scheduler.events
                 .onEach { event ->
                     when (event) {
@@ -100,6 +118,10 @@ public data class RunSC18(override val parent: Scenario, val id: Int, val seed: 
             }
         }
 
-        testScope.advanceUntilIdle()
+        try {
+            testScope.advanceUntilIdle()
+        } finally {
+            monitor.close()
+        }
     }
 }
