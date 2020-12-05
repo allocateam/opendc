@@ -22,6 +22,7 @@ import org.opendc.workflows.service.stage.resource.FirstFitResourceSelectionPoli
 import org.opendc.workflows.service.stage.resource.FunctionalResourceFilterPolicy
 import org.opendc.workflows.service.stage.task.NullTaskEligibilityPolicy
 import org.opendc.workflows.service.stage.task.SubmissionTimeTaskOrderPolicy
+import java.io.File
 import kotlin.math.max
 
 /**
@@ -51,19 +52,16 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
             else -> throw IllegalArgumentException("Unknown policy ${parent.allocationPolicy}")
         }
 
-        val environment = Sc18EnvironmentReader(object {}.javaClass.getResourceAsStream("/env/setup-test.json"))
-            .use { it.construct(testScope, clock) }
-
-        val provisioningService = environment.platforms[0].zones[0].services[ProvisioningService]
-
         val schedulerAsync = testScope.async {
+            val environment = Sc18EnvironmentReader(object {}.javaClass.getResourceAsStream("/env/setup-test.json"))
+                .use { it.construct(testScope, clock) }
             // TODO(gm): replace the environment format/reader with one that makes more sense in the context of this project
             // Environment file can be found in the `environments` folder under the topology name
 
             StageWorkflowService(
                 testScope,
                 clock,
-                provisioningService,
+                environment.platforms[0].zones[0].services[ProvisioningService],
                 mode = WorkflowSchedulerMode.Batch(100),
 
                 // Admit all jobs
@@ -107,7 +105,8 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
 
 
         testScope.launch {
-            val reader = WtfTraceReader(experiment.traces.absolutePath)
+            val tracePath = File(experiment.traces.absolutePath, parent.workload.name).absolutePath
+            val reader = WtfTraceReader(tracePath)
             val scheduler = schedulerAsync.await()
 
             while (reader.hasNext()) {
