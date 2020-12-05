@@ -53,10 +53,10 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
         }
 
         val schedulerAsync = testScope.async {
-            val environment = Sc18EnvironmentReader(object {}.javaClass.getResourceAsStream("/env/setup-test.json"))
+            // Environment file describing topology can be found in the resources of this project
+            var resourcesFile = File("/env/", parent.topology.name + ".json").absolutePath
+            val environment = Sc18EnvironmentReader(object {}.javaClass.getResourceAsStream(resourcesFile))
                 .use { it.construct(testScope, clock) }
-            // TODO(gm): replace the environment format/reader with one that makes more sense in the context of this project
-            // Environment file can be found in the `environments` folder under the topology name
 
             StageWorkflowService(
                 testScope,
