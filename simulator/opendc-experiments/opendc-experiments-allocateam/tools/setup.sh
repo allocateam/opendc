@@ -18,7 +18,8 @@ done
 echo "Extracting traces..."
 for url in "${tracesUrls[@]}"; do
 	filename="$tracesDir/$(echo -n "$url" | cut -d '/' -f 7 | cut -d '?' -f 1)"
-	directory="$(dirname "$filename")/$(basename "$filename" _parquet.zip)"
+	directory="$(dirname "$filename")"
 	unzip "$filename" -d "$directory" > /dev/null
+	mv "$directory/$(basename "$filename" .zip)" "$directory/$(basename "$filename" _parquet.zip)"
 	rm "$filename"
 done
