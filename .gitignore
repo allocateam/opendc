@@ -16,3 +16,9 @@ keys.json
 
 # Traces
 #traces/
+
+# VS Code IDE
+.vscode/
+
+# Plots
+plots
