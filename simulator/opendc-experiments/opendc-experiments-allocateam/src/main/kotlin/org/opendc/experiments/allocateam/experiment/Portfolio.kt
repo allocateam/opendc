@@ -30,7 +30,7 @@ public abstract class Portfolio(
     /**
      * The number of repetitions to perform.
      */
-    public open val repetitions: Int = 32
+    public open val repetitions: Int = 1
 
     /**
      * Resolve the children of this container.

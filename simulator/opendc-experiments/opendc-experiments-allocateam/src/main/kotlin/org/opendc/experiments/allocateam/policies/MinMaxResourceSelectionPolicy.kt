@@ -7,8 +7,16 @@ import org.opendc.workflows.service.stage.resource.ResourceSelectionPolicy
 public object MinMaxResourceSelectionPolicy : ResourceSelectionPolicy {
 
     // TODO(gm): this is only a placeholder for the moment
-    override fun invoke(scheduler: StageWorkflowService): Comparator<Node> =
-        Comparator { _, _ -> 1 }
+    override fun invoke(scheduler: StageWorkflowService): Comparator<Node> {
+        return object : Comparator<Node> {
+            override fun compare(o1: Node, o2: Node): Int {
+                println(o1)
+                println(o2)
+
+                return 1
+            }
+        }
+    }
 
     override fun toString(): String = "MinMax"
 

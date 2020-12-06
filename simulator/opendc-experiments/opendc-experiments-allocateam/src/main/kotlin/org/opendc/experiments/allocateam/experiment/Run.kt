@@ -1,11 +1,10 @@
 package org.opendc.experiments.allocateam.experiment
 
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.test.TestCoroutineScope
 import mu.KotlinLogging
 import org.opendc.compute.core.metal.service.ProvisioningService
+import org.opendc.experiments.allocateam.monitors.AllocateamExperimentMonitor
 import org.opendc.experiments.allocateam.policies.MinMaxResourceSelectionPolicy
 import org.opendc.experiments.sc20.experiment.monitor.ParquetExperimentMonitor
 import org.opendc.experiments.sc20.runner.TrialExperimentDescriptor
@@ -14,7 +13,6 @@ import org.opendc.format.environment.sc18.Sc18EnvironmentReader
 import org.opendc.format.trace.wtf.WtfTraceReader
 import org.opendc.simulator.utils.DelayControllerClockAdapter
 import org.opendc.workflows.service.StageWorkflowService
-import org.opendc.workflows.service.WorkflowEvent
 import org.opendc.workflows.service.WorkflowSchedulerMode
 import org.opendc.workflows.service.stage.job.NullJobAdmissionPolicy
 import org.opendc.workflows.service.stage.job.SubmissionTimeJobOrderPolicy
@@ -37,14 +35,11 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
         val testScope = TestCoroutineScope()
         val clock = DelayControllerClockAdapter(testScope)
 
-        val monitor = ParquetExperimentMonitor(
+        val monitor = AllocateamExperimentMonitor(
             parent.parent.parent.output,
             "portfolio_id=${parent.parent.id}/scenario_id=${parent.id}/run_id=$id",
             parent.parent.parent.bufferSize
         )
-
-        var total = 0
-        var finished = 0
 
         val allocationPolicy = when (parent.allocationPolicy) {
             "first-fit" -> FirstFitResourceSelectionPolicy
@@ -87,20 +82,12 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
         // attach monitor to scheduler
         testScope.launch {
             val scheduler = schedulerAsync.await()
-
-            scheduler.events
-                .onEach { event ->
-                    when (event) {
-                        is WorkflowEvent.JobStarted -> {
-                            logger.info { "Job ${event.job.uid} started" }
-                        }
-                        is WorkflowEvent.JobFinished -> {
-                            finished += 1
-                            logger.info { "Jobs $finished/$total finished (${event.job.tasks.size} tasks)" }
-                        }
-                    }
-                }
-                .collect()
+            attachMonitor(
+                this,
+                clock,
+                scheduler,
+                monitor
+            )
         }
 
 
@@ -111,7 +98,6 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
 
             while (reader.hasNext()) {
                 val (time, job) = reader.next()
-                total += 1
                 delay(max(0, time * 1000 - clock.millis()))
                 scheduler.submit(job)
             }
