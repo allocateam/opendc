@@ -1,9 +1,7 @@
 package org.opendc.experiments.allocateam.monitors
 
-import org.opendc.compute.core.Server
-import org.opendc.experiments.allocateam.telemetry.JobFinishedEvent
-import org.opendc.experiments.allocateam.telemetry.ParquetJobEventWriter
-import org.opendc.experiments.sc20.telemetry.HostEvent
+import org.opendc.experiments.allocateam.telemetry.events.JobFinishedEvent
+import org.opendc.experiments.allocateam.telemetry.writers.ParquetJobEventWriter
 import org.opendc.workflows.service.WorkflowEvent
 import org.opendc.workflows.workload.Job
 import java.io.File

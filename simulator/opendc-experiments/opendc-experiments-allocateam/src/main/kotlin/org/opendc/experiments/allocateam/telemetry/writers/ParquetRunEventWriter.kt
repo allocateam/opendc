@@ -1,8 +1,9 @@
-package org.opendc.experiments.allocateam.telemetry
+package org.opendc.experiments.allocateam.telemetry.writers
 
 import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
 import org.apache.avro.generic.GenericData
+import org.opendc.experiments.allocateam.telemetry.events.RunEvent
 import org.opendc.experiments.sc20.telemetry.parquet.ParquetEventWriter
 import java.io.File
 

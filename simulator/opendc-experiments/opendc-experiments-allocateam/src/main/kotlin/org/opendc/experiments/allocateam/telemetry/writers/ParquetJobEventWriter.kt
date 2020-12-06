@@ -1,11 +1,10 @@
-package org.opendc.experiments.allocateam.telemetry
+package org.opendc.experiments.allocateam.telemetry.writers
 
 import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
 import org.apache.avro.generic.GenericData
-import org.opendc.experiments.sc20.telemetry.ProvisionerEvent
+import org.opendc.experiments.allocateam.telemetry.events.JobFinishedEvent
 import org.opendc.experiments.sc20.telemetry.parquet.ParquetEventWriter
-import org.opendc.workflows.service.WorkflowEvent
 import java.io.File
 
 public class ParquetJobEventWriter(path: File, bufferSize: Int) :

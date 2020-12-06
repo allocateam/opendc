@@ -1,7 +1,7 @@
 package org.opendc.experiments.allocateam.experiment
 
-import org.opendc.experiments.allocateam.telemetry.ParquetRunEventWriter
-import org.opendc.experiments.allocateam.telemetry.RunEvent
+import org.opendc.experiments.allocateam.telemetry.writers.ParquetRunEventWriter
+import org.opendc.experiments.allocateam.telemetry.events.RunEvent
 import org.opendc.experiments.sc20.runner.ContainerExperimentDescriptor
 import org.opendc.experiments.sc20.runner.ExperimentDescriptor
 import org.opendc.experiments.sc20.runner.execution.ExperimentExecutionContext

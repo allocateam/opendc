@@ -1,4 +1,4 @@
-package org.opendc.experiments.allocateam.telemetry
+package org.opendc.experiments.allocateam.telemetry.events
 
 import org.opendc.experiments.sc20.telemetry.Event
 
