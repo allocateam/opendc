@@ -12,3 +12,4 @@ rm -rf "$OUTPUT_PATH"
 mkdir "$OUTPUT_PATH"
 
 ./gradlew :opendc-experiments:opendc-experiments-allocateam:run --args="--trace-path \"$(realpath "$1")\" --portfolio $2 --output \"$OUTPUT_PATH\""
+./gradlew :opendc-experiments:opendc-experiments-sc20:run --args="--environment-path \"$(realpath "$1")\" --trace-path \"$(realpath "$2")\" --portfolio $3 --output \"$OUTPUT_PATH\""

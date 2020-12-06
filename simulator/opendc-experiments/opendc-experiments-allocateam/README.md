@@ -4,13 +4,9 @@ The goal of the Allocateam experiments is to analyze and compare different resou
 
 ## Setup
 
-The `scripts` folder contains the necessary helper scripts that make it possible to download the necessary traces and
+The `tools` folder contains the necessary helper scripts that make it possible to download the necessary traces and
 easily run the experiments from the command-line.
 
-In order to make your life easier, make sure you add the execution permission to these scripts by running:
-```shell
-$ chmod +x ./tools/*.sh
-```
 
 Before being able to run the experiments, the traces need to be downloaded. This can be done with the `setup.sh` script,
 by running:
