@@ -38,6 +38,8 @@ public interface ComparableAllocationPolicyLogic : AllocationPolicy.Logic {
         hypervisors: Set<HypervisorView>,
         image: SimVirtProvisioningService.ImageView
     ): HypervisorView? {
+        // Choose hypervisor that has enough memory and CPU available with the lowest uid
+        // or return null
         return hypervisors.asSequence()
             .filter { hv ->
                 val fitsMemory = hv.availableMemory >= (image.image.tags["required-memory"] as Long)
