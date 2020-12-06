@@ -12,12 +12,31 @@ The `old-master` is a copy of the original `master` branch and is kept as a refe
 
 There is shell script in the simulator folder that allows you to easily run experiments. To run script:
 
-#### Navigate to simulator folder:
+### (Optional) Create a dev container
+
+```bash
+# Build container
+docker build -t opendc-dev .
+```
+
+```bash
+# Start container
+docker run -dit -v /path/to/local/opendc:/home/opendc/ --name opendc-dev opendc-dev:latest bash
+```
+
+```bash
+# Get into container's shell
+docker exec -it opendc-dev bash
+```
+
+#### Navigate to simulator folder
+
 ```shell script
 cd simulator
 ```
 
-#### Run script:
+#### Run script
+
 ```shell script
 ./run-experiments.sh ./ds_exp/mock/env ./ds_exp/mock/traces test
 ```
@@ -26,12 +45,24 @@ The arguments have the following meaning:
 - `./ds_exp/mock/traces`: Path to experiment traces
 - `test`: Portfolio
 
- #### View results
- 
- After running the script a folder called `data` should be created in the current directory. The folder contains experiment results
- in the parquet format. To view parquet files you can install *parquet_tools*: `brew install parquet-tools`
- 
- To view experiment results:
- ```shell script
+#### View results
+
+After running the script a folder called `data` should be created in the current directory. The folder contains experiment results
+in the parquet format. 
+
+To view parquet files you can install *parquet_tools*
+
+##### Dev container
+
+To view experiment results:
+```bash
+parquet-tools csv data/experiments.parquet > ./data/experiments.csv
+```
+
+##### mac OS
+`brew install parquet-tools`
+
+To view experiment results:
+```shell script
 parquet-tools cat --json data/experiments.parquet > ./data/experiments.json
-```  
+```
