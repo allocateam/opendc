@@ -18,9 +18,7 @@ public class Scenario(
 ) : ContainerExperimentDescriptor() {
     override val children: Sequence<ExperimentDescriptor> = sequence {
         repeat(repetitions) {
-            // TODO(gm): still need to figure out which Run class to use depending on experiment
-            //i -> yield(RunSC18(this@Scenario, i, i))
-            i -> yield(RunSC20(this@Scenario, i, i))
+            i -> yield(Run(this@Scenario, i, i))
         }
     }
 }

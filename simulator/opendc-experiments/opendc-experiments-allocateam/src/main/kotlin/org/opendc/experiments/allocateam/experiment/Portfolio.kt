@@ -1,7 +1,5 @@
 package org.opendc.experiments.allocateam.experiment
 
-import org.opendc.experiments.sc20.experiment.Experiment
-import org.opendc.experiments.sc20.experiment.model.OperationalPhenomena
 import org.opendc.experiments.sc20.experiment.model.Topology
 import org.opendc.experiments.sc20.experiment.model.Workload
 import org.opendc.experiments.sc20.runner.ContainerExperimentDescriptor
