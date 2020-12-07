@@ -3,6 +3,10 @@ package org.opendc.experiments.allocateam.experiment
 import org.opendc.experiments.sc20.experiment.model.Topology
 import org.opendc.experiments.sc20.experiment.model.Workload
 
+/**
+ * Concrete implementations of [Portfolio].
+ */
+
 public class SmokeTestPortfolio(parent: Experiment, id: Int) : Portfolio(parent, id, "smokeTest") {
     override val topologies: List<Topology> = listOf(
         Topology("single")
@@ -15,4 +19,6 @@ public class SmokeTestPortfolio(parent: Experiment, id: Int) : Portfolio(parent,
     override val allocationPolicies: List<String> = listOf(
         "min-max"
     )
+
+    override val repetitions: Int = 2
 }

@@ -3,23 +3,24 @@ package org.opendc.experiments.allocateam.telemetry.writers
 import org.apache.avro.Schema
 import org.apache.avro.SchemaBuilder
 import org.apache.avro.generic.GenericData
-import org.opendc.experiments.allocateam.telemetry.events.RunEvent
+import org.opendc.experiments.allocateam.telemetry.events.RunCompletedEvent
 import org.opendc.experiments.sc20.telemetry.parquet.ParquetEventWriter
 import java.io.File
 
 /**
- * A Parquet event writer for [RunEvent]s.
+ * A Parquet event writer for [RunCompletedEvent]s.
  */
-public class ParquetRunEventWriter(path: File, bufferSize: Int) :
-    ParquetEventWriter<RunEvent>(path, schema, convert, bufferSize) {
+public class ParquetRunCompletedEventWriter(path: File) :
+    ParquetEventWriter<RunCompletedEvent>(path, schema, convert) {
 
-    override fun toString(): String = "run-writer"
+    override fun toString(): String = "run-completed-event-writer"
 
     public companion object {
-        private val convert: (RunEvent, GenericData.Record) -> Unit = { event, record ->
+        private val convert: (RunCompletedEvent, GenericData.Record) -> Unit = { event, record ->
             val run = event.run
             val scenario = run.parent
             val portfolio = scenario.parent
+            val runMetrics = event.runMetrics
             record.put("portfolio_id", portfolio.id)
             record.put("portfolio_name", portfolio.name)
             record.put("scenario_id", scenario.id)
@@ -28,6 +29,7 @@ public class ParquetRunEventWriter(path: File, bufferSize: Int) :
             record.put("topology", scenario.topology.name)
             record.put("workload_name", scenario.workload.name)
             record.put("allocation_policy", scenario.allocationPolicy)
+            record.put("task_throughput", runMetrics.taskThroughput)
         }
 
         private val schema: Schema = SchemaBuilder
@@ -42,6 +44,7 @@ public class ParquetRunEventWriter(path: File, bufferSize: Int) :
             .name("topology").type().stringType().noDefault()
             .name("workload_name").type().stringType().noDefault()
             .name("allocation_policy").type().stringType().noDefault()
+            .name("task_throughput").type().doubleType().noDefault()
             .endRecord()
     }
 }

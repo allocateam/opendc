@@ -1,7 +1,5 @@
 package org.opendc.experiments.allocateam.experiment
 
-import org.opendc.experiments.allocateam.telemetry.writers.ParquetRunEventWriter
-import org.opendc.experiments.allocateam.telemetry.events.RunEvent
 import org.opendc.experiments.sc20.runner.ContainerExperimentDescriptor
 import org.opendc.experiments.sc20.runner.ExperimentDescriptor
 import org.opendc.experiments.sc20.runner.execution.ExperimentExecutionContext
@@ -13,37 +11,21 @@ import java.io.File
  *
  * @param traces The path to the traces directory.
  * @param output The output directory.
- * @param vmPlacements Original VM placement in the trace.
- * @param bufferSize The buffer size of the event reporters.
  */
-public abstract class Experiment(
-    public val traces: File,
-    public val output: File,
-    public val vmPlacements: Map<String, String>,
-    public val bufferSize: Int
-) : ContainerExperimentDescriptor() {
+public abstract class Experiment(public val traces: File, public val output: File) : ContainerExperimentDescriptor() {
     override val parent: ExperimentDescriptor? = null
 
     override suspend fun invoke(context: ExperimentExecutionContext) {
-        val writer = ParquetRunEventWriter(File(output, "experiments.parquet"), bufferSize)
-        try {
-            val listener = object : ExperimentExecutionListener by context.listener {
-                override fun descriptorRegistered(descriptor: ExperimentDescriptor) {
-                    if (descriptor is Run) {
-                        writer.write(RunEvent(descriptor, System.currentTimeMillis()))
-                    }
-
-                    context.listener.descriptorRegistered(descriptor)
-                }
+        val listener = object : ExperimentExecutionListener by context.listener {
+            override fun descriptorRegistered(descriptor: ExperimentDescriptor) {
+                context.listener.descriptorRegistered(descriptor)
             }
-
-            val newContext = object : ExperimentExecutionContext by context {
-                override val listener: ExperimentExecutionListener = listener
-            }
-
-            super.invoke(newContext)
-        } finally {
-            writer.close()
         }
+
+        val newContext = object : ExperimentExecutionContext by context {
+            override val listener: ExperimentExecutionListener = listener
+        }
+
+        super.invoke(newContext)
     }
 }

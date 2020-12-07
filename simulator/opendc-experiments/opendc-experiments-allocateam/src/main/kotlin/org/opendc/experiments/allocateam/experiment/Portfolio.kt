@@ -5,7 +5,7 @@ import org.opendc.experiments.sc20.experiment.model.Workload
 import org.opendc.experiments.sc20.runner.ContainerExperimentDescriptor
 
 /**
- * A portfolio represents a collection of scenarios are tested.
+ * A portfolio represents a collection of scenarios that are tested.
  */
 public abstract class Portfolio(
     override val parent: Experiment,

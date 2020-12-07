@@ -26,3 +26,23 @@ $ ./tools/run.sh smokeTest
 ```
 
 This will compile & run the code necessary for running the experiments. The results can be found under the `data` directory in the Parquet format.
+
+### View results
+
+After running the script a folder called `data` should be created in the `opendc-experiments-allocateam` directory. The folder contains experiment results
+in the parquet format. To view parquet files you can install *parquet_tools*.
+
+##### Dev container
+
+Create a CSV:
+```bash
+parquet-tools csv data/experiments.parquet > ./data/experiments.csv
+```
+
+##### mac OS
+`brew install parquet-tools`
+
+Create a JSON:
+```shell script
+parquet-tools cat --json data/experiments.parquet > ./data/experiments.json
+```
