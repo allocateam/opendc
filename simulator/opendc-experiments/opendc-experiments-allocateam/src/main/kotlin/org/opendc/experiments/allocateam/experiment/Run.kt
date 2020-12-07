@@ -42,7 +42,7 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
         val testScope = TestCoroutineScope()
         val clock = DelayControllerClockAdapter(testScope)
 
-        val monitor = RunMonitor(experiment.output, this, clock)
+        val monitor = RunMonitor(this, clock)
 
         val allocationPolicy = when (parent.allocationPolicy) {
             "first-fit" -> FirstFitResourceSelectionPolicy
@@ -110,7 +110,7 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
             testScope.advanceUntilIdle()
         } finally {
             this.runStatus = RunStatus.FINISHED
-            monitor.close()
+            monitor.generateMetrics()
         }
     }
 }

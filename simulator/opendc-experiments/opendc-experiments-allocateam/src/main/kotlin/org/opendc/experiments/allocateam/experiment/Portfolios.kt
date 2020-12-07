@@ -13,7 +13,8 @@ public class SmokeTestPortfolio(parent: Experiment, id: Int) : Portfolio(parent,
     )
 
     override val workloads: List<Workload> = listOf(
-        Workload("shell", 1.0)
+        Workload("shell", 1.0),
+        Workload("askalon_ee", 1.0)
     )
 
     override val allocationPolicies: List<String> = listOf(

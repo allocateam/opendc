@@ -5,10 +5,8 @@ import org.opendc.experiments.allocateam.experiment.Run
 import org.opendc.experiments.allocateam.experiment.RunStatus
 import org.opendc.experiments.allocateam.telemetry.RunMetrics
 import org.opendc.experiments.allocateam.telemetry.events.RunCompletedEvent
-import org.opendc.experiments.allocateam.telemetry.writers.ParquetRunCompletedEventWriter
 import org.opendc.workflows.service.WorkflowEvent
 import org.opendc.workflows.workload.Job
-import java.io.File
 import java.time.Clock
 import java.util.concurrent.TimeUnit
 
@@ -22,7 +20,7 @@ private val logger = KotlinLogging.logger {}
  * Monitor certain events within a run in order to produce metrics for the run.
  *
  */
-public class RunMonitor(private val basePath: File, private val run: Run, private val clock: Clock) {
+public class RunMonitor(private val run: Run, private val clock: Clock) {
     // (intermediate) metric aggregators
     private val startTime: Long = System.currentTimeMillis()
     private var startedJobs = 0
@@ -30,17 +28,19 @@ public class RunMonitor(private val basePath: File, private val run: Run, privat
     private var startedTasks = 0
     private var finishedTasks = 0
 
-    private val runMetricsWriter = ParquetRunCompletedEventWriter(
-        File(this.basePath, "metrics.parquet"),
-    )
-
     private val startTimesPerJob = mutableMapOf<Job, Long>()
 
-    private fun generateMetrics() {
+    /**
+     * Generate all metrics from the intermediate metric aggregators
+     */
+    public fun generateMetrics() {
+        // Metrics
         val taskThroughput = this.calculateTaskThroughput()
+
         val runMetrics = RunMetrics(taskThroughput)
         val runCompletedEvent = RunCompletedEvent(run, runMetrics, clock.millis())
-        runMetricsWriter.write(runCompletedEvent)
+        val experiment = run.parent.parent.parent
+        experiment.storeRunCompletedEvent(runCompletedEvent)
     }
 
     private fun calculateTaskThroughput(): Double {
@@ -83,10 +83,5 @@ public class RunMonitor(private val basePath: File, private val run: Run, privat
 
     public fun reportTaskFinished() {
         this.finishedTasks += 1
-    }
-
-    public fun close() {
-        this.generateMetrics()
-        runMetricsWriter.close()
     }
 }
