@@ -21,5 +21,5 @@ public class SmokeTestPortfolio(parent: Experiment, id: Int) : Portfolio(parent,
         "min-max"
     )
 
-    override val repetitions: Int = 2
+    override val repetitions: Int = 4
 }
