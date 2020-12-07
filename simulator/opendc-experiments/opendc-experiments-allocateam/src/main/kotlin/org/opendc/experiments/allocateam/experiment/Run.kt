@@ -18,7 +18,9 @@ import org.opendc.workflows.service.stage.job.NullJobAdmissionPolicy
 import org.opendc.workflows.service.stage.job.SubmissionTimeJobOrderPolicy
 import org.opendc.workflows.service.stage.resource.FirstFitResourceSelectionPolicy
 import org.opendc.workflows.service.stage.resource.FunctionalResourceFilterPolicy
+import org.opendc.workflows.service.stage.task.LimitTaskEligibilityPolicy
 import org.opendc.workflows.service.stage.task.NullTaskEligibilityPolicy
+import org.opendc.workflows.service.stage.task.RoundRobinPolicy
 import org.opendc.workflows.service.stage.task.SubmissionTimeTaskOrderPolicy
 import java.io.File
 import kotlin.math.max
@@ -66,7 +68,7 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
                 jobOrderPolicy = SubmissionTimeJobOrderPolicy(),
 
                 // All tasks are eligible to be scheduled
-                taskEligibilityPolicy = NullTaskEligibilityPolicy,
+                taskEligibilityPolicy = RoundRobinPolicy(3),
 
                 // Order tasks by their submission time
                 taskOrderPolicy = SubmissionTimeTaskOrderPolicy(),
