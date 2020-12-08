@@ -79,7 +79,7 @@ def main():
     """Usage: python3 plot.py <path_to_csv>
     See example.csv for an example of the input data.
     """
-    parser = argparse.ArgumentParser(description="Plot metrics for the Alocateam experiment.")
+    parser = argparse.ArgumentParser(description="Plot metrics for the Allocateam experiment.")
     parser.add_argument(
         "path",
         nargs='?',
