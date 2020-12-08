@@ -264,19 +264,19 @@ public class StageWorkflowService(
         // T1 Create list of eligible tasks
         val taskIterator = incomingTasks.iterator()
         while (taskIterator.hasNext()) {
-            println("Incoming task size: ${incomingTasks.size}")
+//            println("Incoming task size: ${incomingTasks.size}")
             val taskInstance = taskIterator.next()
-            println("Scheduling task: ${taskInstance.task.uid}")
+//            println("Scheduling task: ${taskInstance.task.uid}")
             val advice = taskEligibilityPolicy(taskInstance)
             if (advice.stop) {
-                println("Task ${taskInstance.task.uid} was stoped")
+//                println("Task ${taskInstance.task.uid} was stoped")
                 break
             } else if (!advice.admit) {
-                println("Task ${taskInstance.task.uid} was not admitted")
+//                println("Task ${taskInstance.task.uid} was not admitted")
                 continue
             }
 
-            println("Task ${taskInstance.task.uid} was admitted")
+//            println("Task ${taskInstance.task.uid} was admitted")
             taskIterator.remove()
             taskQueue.add(taskInstance)
         }
@@ -285,11 +285,12 @@ public class StageWorkflowService(
         while (taskQueue.isNotEmpty()) {
             val instance = taskQueue.peek()
             val host: Node? = available.firstOrNull()
-            println("Task queue size: ${taskQueue.size}, Total number of tasks: ${incomingTasks.size}")
+//            println("Task queue size: ${taskQueue.size}, Total number of tasks: ${incomingTasks.size}")
             if (host != null) {
                 // T4 Submit task to machine
                 available -= host
                 instance.state = TaskStatus.ACTIVE
+                println("Submiting to machine jobId: ${instance.job.job.uid}, taskId: ${instance.task.uid}")
                 val newHost = provisioningService.deploy(host, instance.task.image)
                 val server = newHost.server!!
                 instance.host = newHost

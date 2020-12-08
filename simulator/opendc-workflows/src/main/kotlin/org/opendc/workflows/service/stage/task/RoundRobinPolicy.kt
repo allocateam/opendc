@@ -50,17 +50,24 @@ public data class RoundRobinPolicy(public val quanta: Int) : TaskEligibilityPoli
             override fun jobStarted(job: JobState) {
                 val queuedJob = QueuedJob(job.job.uid, mutableSetOf(), 0)
                 activeQueue.add(queuedJob)
-                println("New job: jobId: ${queuedJob.jobId}, Num tasks: ${queuedJob.totalNumberOfTasks}")
+//                println("New job: jobId: ${queuedJob.jobId}, Num tasks: ${queuedJob.totalNumberOfTasks}")
             }
 
             override fun jobFinished(job: JobState) {
             }
 
             override fun taskReady(task: TaskState) {
-                println("Task ready ${task.task.uid}, job id: ${task.job.job.uid}")
-                var queuedJob = activeQueue.filter { it.jobId.equals(task.job.job.uid) }.get(0)
-                queuedJob.tasks.add(task.task)
-                queuedJob.totalNumberOfTasks += 1
+//                println("Task ready ${task.task.uid}, job id: ${task.job.job.uid}")
+                val queuedJobs = activeQueue.filter { it.jobId.equals(task.job.job.uid) }
+                if(queuedJobs.isNotEmpty()) {
+                    queuedJobs[0].tasks.add(task.task)
+                    queuedJobs[0].totalNumberOfTasks += 1
+                    return
+                }
+
+//                println("null task ready for jobid: ${task.job.job.uid}")
+                val queuedJob = QueuedJob(task.job.job.uid, mutableSetOf(task.task), 1)
+                activeQueue.add(queuedJob)
             }
 
             override fun taskFinished(task: TaskState) {
@@ -71,17 +78,17 @@ public data class RoundRobinPolicy(public val quanta: Int) : TaskEligibilityPoli
                 // If we already scheduled a quanta amount during this batch, we stop scheduling any more tasks for this
                 // batch
                 if(numScheduledSoFar + 1 > quanta) {
-                    println("Exceeded quota, stopping!")
+//                    println("Exceeded quota, stopping!")
                     numScheduledSoFar = 0
                     return TaskEligibilityPolicy.Advice.STOP
                 }
 
                 val job:QueuedJob = activeQueue.peek()
-                println("Job in queue: ${job.jobId} num_tasks_left for job: ${job.tasks.size}, queue size: ${activeQueue.size}")
+//                println("Job in queue: ${job.jobId} num_tasks_left for job: ${job.tasks.size}, queue size: ${activeQueue.size}")
 
                 // We check to see if the current task is part of the same job as the top of the job queue
                 if(!task.job.job.uid.equals(job.jobId)) {
-                    println("Job task does not have same id as task for scheduling")
+//                    println("Job task does not have same id as task for scheduling")
                     return TaskEligibilityPolicy.Advice.DENY
                 }
 
@@ -96,14 +103,14 @@ public data class RoundRobinPolicy(public val quanta: Int) : TaskEligibilityPoli
                 }
 
                 if(!taskIsQueued) {
-                    println("Task is not in the job ${job.jobId} list of tasks")
+//                    println("Task is not in the job ${job.jobId} list of tasks")
                     return TaskEligibilityPolicy.Advice.DENY
                 }
 
                 // We remove the task from the list of tasks of the queued job to execute
-                println("Number of tasks for job ${job.jobId}: ${job.tasks.size}")
+//                println("Number of tasks for job ${job.jobId}: ${job.tasks.size}")
                 job.tasks.remove(task.task)
-                println("Number of tasks for job ${job.jobId}: ${job.tasks.size}")
+//                println("Number of tasks for job ${job.jobId}: ${job.tasks.size}")
 
                 // If we finished all the tasks from the queued job set, we pop it from the queue
                 if(job.tasks.size == 0) {
@@ -116,7 +123,7 @@ public data class RoundRobinPolicy(public val quanta: Int) : TaskEligibilityPoli
                     activeQueue.add(remainingJob)
                 }
 
-                println("Scheduled task: ${task.task.uid} of job: ${job.jobId}")
+//                println("Scheduled task: ${task.task.uid} of job: ${job.jobId}")
                 numScheduledSoFar++
                 return TaskEligibilityPolicy.Advice.ADMIT
             }
