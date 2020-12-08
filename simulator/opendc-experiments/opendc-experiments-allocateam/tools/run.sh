@@ -16,12 +16,12 @@ command -v realpath > /dev/null 2>&1 || realpath() {
 if [ -d "$DATA_DIR" ]; then
 	read -rp "data directory exists. Remove it (y/n)? " choice
 	case "$choice" in
-		y|Y ) rm -r "$DATA_DIR";;
+		y|Y ) rm -r "$DATA_DIR" && mkdir "$DATA_DIR";;
 		n|N ) echo "Cannot proceed without (re)moving data directory. Aborting..."; exit 1;;
 		* ) echo "Ambiguous answer. Aborting..."; exit 2;;
 	esac
 else
 	mkdir "$DATA_DIR"
-fi 
+fi
 
 "$GRADLE" :opendc-experiments:opendc-experiments-allocateam:run --args="--trace-path \"$TRACES_DIR\" --portfolio \"$1\" -O \"$DATA_DIR\""

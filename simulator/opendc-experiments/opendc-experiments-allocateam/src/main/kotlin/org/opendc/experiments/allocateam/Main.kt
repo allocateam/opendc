@@ -53,17 +53,16 @@ public class ExperimentCli : CliktCommand(name = "allocateam") {
         .default(Runtime.getRuntime().availableProcessors())
 
     override fun run() {
-
         logger.info { "Creating experiment descriptor" }
 
         val descriptor = object :
-            Experiment(tracePath, output, emptyMap(), 4096) {
-            private val descriptor = this
-            override val children: Sequence<ExperimentDescriptor> = sequence {
-                for ((i, producer) in portfolios.withIndex()) {
-                    yield(producer(descriptor, i))
+            Experiment(tracePath, output) {
+                private val descriptor = this
+                override val children: Sequence<ExperimentDescriptor> = sequence {
+                    for ((i, producer) in portfolios.withIndex()) {
+                        yield(producer(descriptor, i))
+                    }
                 }
-            }
         }
 
         logger.info { "Starting experiment runner [parallelism=$parallelism]" }
