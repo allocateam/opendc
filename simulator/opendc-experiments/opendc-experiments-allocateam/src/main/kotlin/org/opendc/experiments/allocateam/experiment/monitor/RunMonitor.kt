@@ -36,7 +36,6 @@ public class RunMonitor(private val run: Run, private val clock: Clock) {
      * Generate all metrics from the intermediate metric aggregators
      */
     public fun generateMetrics() {
-        // Metrics
         val taskThroughput = this.calculateTaskThroughput()
         val turnaroundTime = this.calculateTurnaroundTime()
 
@@ -68,18 +67,12 @@ public class RunMonitor(private val run: Run, private val clock: Clock) {
     public fun reportJobStarted(event: WorkflowEvent.JobStarted) {
         startTimesPerJob[event.jobState.job] = event.time
         this.startedJobs += 1
+
+        // FIXME(gm): create a proper WorkflowEvent for this
         submissionTimesPerJob[event.jobState.job] = event.jobState.submittedAt
-//        logger.info { "Job ${event.job.uid} started" }
     }
 
-    public fun reportJobSubmitted(event: WorkflowEvent.JobStarted) {
-        startTimesPerJob[event.jobState.job] = event.time
-    }
-
-    public fun reportJobFinished(time: Long, event: WorkflowEvent.JobFinished) {
-        val startTime = startTimesPerJob[event.job]!!
-        val duration = event.time - startTime
-
+    public fun reportJobFinished(event: WorkflowEvent.JobFinished) {
         turnaroundTimes.add(
             event.time - submissionTimesPerJob[event.job]!!
         )
@@ -87,8 +80,6 @@ public class RunMonitor(private val run: Run, private val clock: Clock) {
         startTimesPerJob.remove(event.job)
         submissionTimesPerJob.remove(event.job)
         this.finishedJobs += 1
-//        logger.info { "$finishedJobs jobs finished of ${this.startedJobs} started and completed " +
-//            "jobs (${event.job.tasks.size} tasks)" }
     }
 
     public fun reportTaskStarted() {
