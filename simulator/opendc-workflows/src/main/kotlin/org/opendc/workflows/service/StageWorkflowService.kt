@@ -167,7 +167,7 @@ public class StageWorkflowService(
     private val jobAdmissionPolicy: JobAdmissionPolicy.Logic
     private val taskEligibilityPolicy: TaskEligibilityPolicy.Logic
     private val resourceFilterPolicy: ResourceFilterPolicy.Logic
-    private val resourceSelectionPolicy: Comparator<Node>
+    private val resourceSelectionPolicy: (List<Node>, TaskState) -> Node?
     private val eventFlow = EventFlow<WorkflowEvent>()
 
     init {
@@ -279,7 +279,7 @@ public class StageWorkflowService(
         // T3 Per task
         while (taskQueue.isNotEmpty()) {
             val instance = taskQueue.peek()
-            val host: Node? = available.firstOrNull()
+            val host: Node? = resourceSelectionPolicy(available.toList(), instance)
 
             if (host != null) {
                 // T4 Submit task to machine

@@ -37,6 +37,7 @@ dependencies {
     api(project(":opendc-core"))
     implementation(project(":opendc-format"))
     implementation(project(":opendc-workflows"))
+    implementation(project(":opendc-simulator:opendc-simulator-compute"))
     implementation(project(":opendc-simulator:opendc-simulator-core"))
     implementation(project(":opendc-compute:opendc-compute-simulator"))
 
