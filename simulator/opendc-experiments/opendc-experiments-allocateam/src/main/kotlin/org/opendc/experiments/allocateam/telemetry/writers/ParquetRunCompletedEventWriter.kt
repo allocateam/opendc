@@ -44,7 +44,8 @@ public class ParquetRunCompletedEventWriter(path: File) :
             .name("repetitions").type().intType().noDefault()
             .name("topology").type().stringType().noDefault()
             .name("workload_name").type().stringType().noDefault()
-            .name("allocation_policy").type().stringType().noDefault()
+            .name("resource_selection_policy").type().stringType().noDefault()
+            .name("task_eligibility_policy").type().stringType().noDefault()
             .name("task_throughput").type().doubleType().noDefault()
             .endRecord()
     }

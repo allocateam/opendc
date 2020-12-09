@@ -54,7 +54,7 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
         val taskEligibilityPolicy = when(parent.taskEligibilityPolicy) {
             "null" -> NullTaskEligibilityPolicy
             "roundRobin" -> RoundRobinPolicy(30)
-            else -> throw IllegalArgumentException("Unknown task eligibility policy ${parent.taskEligibilityPolicy}")
+            else -> NullTaskEligibilityPolicy
         }
 
         val schedulerAsync = testScope.async {
