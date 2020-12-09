@@ -290,7 +290,6 @@ public class StageWorkflowService(
                 // T4 Submit task to machine
                 available -= host
                 instance.state = TaskStatus.ACTIVE
-                println("Submiting to machine jobId: ${instance.job.job.uid}, taskId: ${instance.task.uid}")
                 val newHost = provisioningService.deploy(host, instance.task.image)
                 val server = newHost.server!!
                 instance.host = newHost

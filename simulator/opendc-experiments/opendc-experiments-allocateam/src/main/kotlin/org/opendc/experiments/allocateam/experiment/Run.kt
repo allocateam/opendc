@@ -6,7 +6,6 @@ import mu.KotlinLogging
 import org.opendc.compute.core.metal.service.ProvisioningService
 import org.opendc.experiments.allocateam.monitors.AllocateamExperimentMonitor
 import org.opendc.experiments.allocateam.policies.MinMaxResourceSelectionPolicy
-import org.opendc.experiments.sc20.experiment.monitor.ParquetExperimentMonitor
 import org.opendc.experiments.sc20.runner.TrialExperimentDescriptor
 import org.opendc.experiments.sc20.runner.execution.ExperimentExecutionContext
 import org.opendc.format.environment.sc18.Sc18EnvironmentReader
@@ -18,9 +17,7 @@ import org.opendc.workflows.service.stage.job.NullJobAdmissionPolicy
 import org.opendc.workflows.service.stage.job.SubmissionTimeJobOrderPolicy
 import org.opendc.workflows.service.stage.resource.FirstFitResourceSelectionPolicy
 import org.opendc.workflows.service.stage.resource.FunctionalResourceFilterPolicy
-import org.opendc.workflows.service.stage.task.LimitTaskEligibilityPolicy
-import org.opendc.workflows.service.stage.task.NullTaskEligibilityPolicy
-import org.opendc.workflows.service.stage.task.RoundRobinPolicy
+import org.opendc.experiments.allocateam.policies.RoundRobinPolicy
 import org.opendc.workflows.service.stage.task.SubmissionTimeTaskOrderPolicy
 import java.io.File
 import kotlin.math.max
@@ -68,7 +65,7 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
                 jobOrderPolicy = SubmissionTimeJobOrderPolicy(),
 
                 // All tasks are eligible to be scheduled
-                taskEligibilityPolicy = RoundRobinPolicy(3),
+                taskEligibilityPolicy = RoundRobinPolicy(30),
 
                 // Order tasks by their submission time
                 taskOrderPolicy = SubmissionTimeTaskOrderPolicy(),
