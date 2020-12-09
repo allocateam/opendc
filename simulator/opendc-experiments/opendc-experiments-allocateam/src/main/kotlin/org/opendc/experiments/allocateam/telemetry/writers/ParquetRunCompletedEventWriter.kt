@@ -28,7 +28,8 @@ public class ParquetRunCompletedEventWriter(path: File) :
             record.put("repetitions", scenario.repetitions)
             record.put("topology", scenario.topology.name)
             record.put("workload_name", scenario.workload.name)
-            record.put("allocation_policy", scenario.allocationPolicy)
+            record.put("resource_selection_policy", scenario.resourceSelectionPolicy)
+            record.put("task_eligibility_policy", scenario.taskEligibilityPolicy)
             record.put("task_throughput", runMetrics.taskThroughput)
         }
 

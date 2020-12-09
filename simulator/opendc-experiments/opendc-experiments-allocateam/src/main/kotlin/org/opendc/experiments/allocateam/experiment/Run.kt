@@ -21,6 +21,7 @@ import org.opendc.workflows.service.stage.job.SubmissionTimeJobOrderPolicy
 import org.opendc.workflows.service.stage.resource.FirstFitResourceSelectionPolicy
 import org.opendc.workflows.service.stage.resource.FunctionalResourceFilterPolicy
 import org.opendc.experiments.allocateam.policies.RoundRobinPolicy
+import org.opendc.workflows.service.stage.task.NullTaskEligibilityPolicy
 import org.opendc.workflows.service.stage.task.SubmissionTimeTaskOrderPolicy
 import java.io.File
 import kotlin.math.max
@@ -44,10 +45,16 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
 
         val monitor = RunMonitor(this, clock)
 
-        val allocationPolicy = when (parent.allocationPolicy) {
+        val resourceSelectionPolicy = when (parent.resourceSelectionPolicy) {
             "first-fit" -> FirstFitResourceSelectionPolicy
             "min-max" -> MinMaxResourceSelectionPolicy
-            else -> throw IllegalArgumentException("Unknown policy ${parent.allocationPolicy}")
+            else -> throw IllegalArgumentException("Unknown policy ${parent.resourceSelectionPolicy}")
+        }
+
+        val taskEligibilityPolicy = when(parent.taskEligibilityPolicy) {
+            "null" -> NullTaskEligibilityPolicy
+            "roundRobin" -> RoundRobinPolicy(30)
+            else -> throw IllegalArgumentException("Unknown task eligibility policy ${parent.taskEligibilityPolicy}")
         }
 
         val schedulerAsync = testScope.async {
@@ -69,7 +76,7 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
                 jobOrderPolicy = SubmissionTimeJobOrderPolicy(),
 
                 // All tasks are eligible to be scheduled
-                taskEligibilityPolicy = RoundRobinPolicy(30),
+                taskEligibilityPolicy = taskEligibilityPolicy,
 
                 // Order tasks by their submission time
                 taskOrderPolicy = SubmissionTimeTaskOrderPolicy(),
@@ -78,7 +85,7 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
                 resourceFilterPolicy = FunctionalResourceFilterPolicy,
 
                 // Actual allocation policy (select the resource on which to place the task)
-                resourceSelectionPolicy = allocationPolicy,
+                resourceSelectionPolicy = resourceSelectionPolicy,
             )
         }
 

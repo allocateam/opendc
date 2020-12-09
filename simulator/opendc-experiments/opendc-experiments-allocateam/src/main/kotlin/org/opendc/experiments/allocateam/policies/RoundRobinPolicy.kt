@@ -45,18 +45,21 @@ public data class RoundRobinPolicy(public val quanta: Int) : TaskEligibilityPoli
         object : TaskEligibilityPolicy.Logic, StageWorkflowSchedulerListener {
             private var numScheduledSoFar = 0
             private val activeQueue: Queue<QueuedJob> = LinkedList()
+            private var numJobsStarted = 0
+            private var numJobsFinished = 0
 
             init {
                 scheduler.addListener(this)
             }
 
             override fun jobStarted(job: JobState) {
+                logger.info("Job started: ${job.job.uid} number of jobs started: ${++numJobsStarted}")
                 val queuedJob = QueuedJob(job.job.uid, mutableSetOf(), 0)
                 activeQueue.add(queuedJob)
             }
 
             override fun jobFinished(job: JobState) {
-                logger.info("Job finished: ${job.job.uid}")
+                logger.info("Job finished: ${job.job.uid} number of jobs finished: ${++numJobsFinished}")
             }
 
             override fun taskReady(task: TaskState) {
@@ -120,5 +123,5 @@ public data class RoundRobinPolicy(public val quanta: Int) : TaskEligibilityPoli
             }
         }
 
-    override fun toString(): String = "Limit-Active-Job($quanta)"
+    override fun toString(): String = "Round-Robin-Quanta-($quanta)"
 }
