@@ -280,7 +280,6 @@ public class StageWorkflowService(
         while (taskQueue.isNotEmpty()) {
             val instance = taskQueue.peek()
             val host: Node? = available.firstOrNull()
-//            println("Task queue size: ${taskQueue.size}, Total number of tasks: ${incomingTasks.size}")
             if (host != null) {
                 // T4 Submit task to machine
                 available -= host
