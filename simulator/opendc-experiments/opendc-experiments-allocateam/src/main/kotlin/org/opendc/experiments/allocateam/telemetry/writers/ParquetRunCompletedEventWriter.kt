@@ -30,6 +30,7 @@ public class ParquetRunCompletedEventWriter(path: File) :
             record.put("workload_name", scenario.workload.name)
             record.put("allocation_policy", scenario.allocationPolicy)
             record.put("task_throughput", runMetrics.taskThroughput)
+            record.put("turnaround_time", runMetrics.turnaroundTime)
         }
 
         private val schema: Schema = SchemaBuilder
@@ -45,6 +46,7 @@ public class ParquetRunCompletedEventWriter(path: File) :
             .name("workload_name").type().stringType().noDefault()
             .name("allocation_policy").type().stringType().noDefault()
             .name("task_throughput").type().doubleType().noDefault()
+            .name("turnaround_time").type().doubleType().noDefault()
             .endRecord()
     }
 }
