@@ -23,14 +23,18 @@
 package org.opendc.workflows.service.stage.resource
 
 import org.opendc.compute.core.metal.Node
+import org.opendc.compute.simulator.SimWorkloadImage
+import org.opendc.simulator.compute.workload.SimFlopsWorkload
 import org.opendc.workflows.service.StageWorkflowService
+import org.opendc.workflows.service.TaskState
 
 /**
  * A [ResourceSelectionPolicy] that selects the first machine that is available.
  */
 public object FirstFitResourceSelectionPolicy : ResourceSelectionPolicy {
-    override fun invoke(scheduler: StageWorkflowService): Comparator<Node> =
-        Comparator<Node> { _, _ -> 1 }
+    override fun invoke(scheduler: StageWorkflowService): (List<Node>, TaskState) -> Node? {
+        return { availableNodes, _ -> availableNodes.firstOrNull() }
+    }
 
     override fun toString(): String = "First-Fit"
 }

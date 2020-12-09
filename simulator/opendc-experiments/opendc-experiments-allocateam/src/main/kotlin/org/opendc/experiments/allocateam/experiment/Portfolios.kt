@@ -18,7 +18,8 @@ public class SmokeTestPortfolio(parent: Experiment, id: Int) : Portfolio(parent,
     )
 
     override val allocationPolicies: List<String> = listOf(
-        "min-max"
+        "min-min",
+        "max-min"
     )
 
     override val repetitions: Int = 4
