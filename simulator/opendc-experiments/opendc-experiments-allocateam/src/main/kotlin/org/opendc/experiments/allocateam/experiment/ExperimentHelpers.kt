@@ -5,7 +5,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import mu.KotlinLogging
-import org.opendc.experiments.allocateam.monitors.AllocateamExperimentMonitor
+import org.opendc.experiments.allocateam.experiment.monitor.RunMonitor
 import org.opendc.workflows.service.StageWorkflowService
 import org.opendc.workflows.service.WorkflowEvent
 import java.time.Clock
@@ -16,30 +16,32 @@ import java.time.Clock
 private val logger = KotlinLogging.logger {}
 
 /**
- * Attach a monitor to the
+ * Attach the monitor to the scheduler.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 public suspend fun attachMonitor(
     coroutineScope: CoroutineScope,
     clock: Clock,
     scheduler: StageWorkflowService,
-    monitor: AllocateamExperimentMonitor
+    monitor: RunMonitor
 ) {
-    var total = 0
-    var finished = 0
 
     scheduler.events
         .onEach { event ->
             when (event) {
                 is WorkflowEvent.JobStarted -> {
                     monitor.reportJobStarted(event)
-                    logger.info { "Job ${event.job.uid} started" }
                 }
 
                 is WorkflowEvent.JobFinished -> {
                     monitor.reportJobFinished(clock.millis(), event)
-                    finished += 1
-                    logger.info { "Jobs $finished/$total finished (${event.job.tasks.size} tasks)" }
+                }
+
+                is WorkflowEvent.TaskStarted -> {
+                    monitor.reportTaskStarted()
+                }
+                is WorkflowEvent.TaskFinished -> {
+                    monitor.reportTaskFinished()
                 }
             }
         }

@@ -1,10 +1,13 @@
 package org.opendc.experiments.allocateam.experiment
 
-import kotlinx.coroutines.*
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestCoroutineScope
 import mu.KotlinLogging
 import org.opendc.compute.core.metal.service.ProvisioningService
-import org.opendc.experiments.allocateam.monitors.AllocateamExperimentMonitor
+import org.opendc.experiments.allocateam.experiment.monitor.RunMonitor
 import org.opendc.experiments.allocateam.policies.MinMaxResourceSelectionPolicy
 import org.opendc.experiments.sc20.runner.TrialExperimentDescriptor
 import org.opendc.experiments.sc20.runner.execution.ExperimentExecutionContext
@@ -27,18 +30,19 @@ import kotlin.math.max
  */
 private val logger = KotlinLogging.logger {}
 
+/**
+ * A repetition of a scenario that runs the scenario on the simulator.
+ */
 public data class Run(override val parent: Scenario, val id: Int, val seed: Int) : TrialExperimentDescriptor() {
+    public var runStatus: RunStatus = RunStatus.IDLE
+
     @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun invoke(context: ExperimentExecutionContext) {
         val experiment = parent.parent.parent
         val testScope = TestCoroutineScope()
         val clock = DelayControllerClockAdapter(testScope)
 
-        val monitor = AllocateamExperimentMonitor(
-            parent.parent.parent.output,
-            "portfolio_id=${parent.parent.id}/scenario_id=${parent.id}/run_id=$id",
-            parent.parent.parent.bufferSize
-        )
+        val monitor = RunMonitor(this, clock)
 
         val allocationPolicy = when (parent.allocationPolicy) {
             "first-fit" -> FirstFitResourceSelectionPolicy
@@ -89,12 +93,12 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
             )
         }
 
+        this.runStatus = RunStatus.RUNNING
 
         testScope.launch {
             val tracePath = File(experiment.traces.absolutePath, parent.workload.name).absolutePath
             val reader = WtfTraceReader(tracePath)
             val scheduler = schedulerAsync.await()
-
             while (reader.hasNext()) {
                 val (time, job) = reader.next()
                 delay(max(0, time * 1000 - clock.millis()))
@@ -105,7 +109,8 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
         try {
             testScope.advanceUntilIdle()
         } finally {
-            monitor.close()
+            this.runStatus = RunStatus.FINISHED
+            monitor.generateMetrics()
         }
     }
 }
