@@ -264,19 +264,14 @@ public class StageWorkflowService(
         // T1 Create list of eligible tasks
         val taskIterator = incomingTasks.iterator()
         while (taskIterator.hasNext()) {
-//            println("Incoming task size: ${incomingTasks.size}")
             val taskInstance = taskIterator.next()
-//            println("Scheduling task: ${taskInstance.task.uid}")
             val advice = taskEligibilityPolicy(taskInstance)
             if (advice.stop) {
-//                println("Task ${taskInstance.task.uid} was stoped")
                 break
             } else if (!advice.admit) {
-//                println("Task ${taskInstance.task.uid} was not admitted")
                 continue
             }
 
-//            println("Task ${taskInstance.task.uid} was admitted")
             taskIterator.remove()
             taskQueue.add(taskInstance)
         }
