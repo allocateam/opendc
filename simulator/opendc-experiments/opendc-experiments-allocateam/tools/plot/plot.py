@@ -63,7 +63,7 @@ class Plotter():
         print(f"Plots successfully stored in {self.OUTPUT_PATH}")
 
     def _plot_column(self, column: str, unit: str = None):
-        self.data.plot.barh(x='allocation_policy', y=column, )
+        self.data.plot.barh(x='resource_selection_policy', y=column, )
         plt.ylabel("Allocation policy")
         plt.xlabel(unit)
 
