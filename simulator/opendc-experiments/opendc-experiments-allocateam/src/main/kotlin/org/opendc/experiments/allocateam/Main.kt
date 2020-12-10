@@ -37,9 +37,7 @@ public class ExperimentCli : CliktCommand(name = "allocateam") {
      */
     private val portfolios by option("--portfolio", help = "portfolio of scenarios to explore")
         .choice(
-            "smokeTest" to { experiment: Experiment, i: Int -> SmokeTestPortfolio(experiment, i) },
-            "roundRobin" to { experiment: Experiment, i: Int -> RoundRobinPortofolio(experiment, i) },
-            "lottery" to { experiment: Experiment, i: Int -> LotteryPortfolio(experiment, i) }
+            "smokeTest" to { experiment: Experiment, i: Int -> AllocateamPortfolio(experiment, i) }
                 as (Experiment, Int) -> Portfolio,
             ignoreCase = true
         )
