@@ -10,8 +10,8 @@ public object MinMaxResourceSelectionPolicy : ResourceSelectionPolicy {
     override fun invoke(scheduler: StageWorkflowService): Comparator<Node> {
         return object : Comparator<Node> {
             override fun compare(o1: Node, o2: Node): Int {
-                println(o1)
-                println(o2)
+//                println(o1)
+//                println(o2)
 
                 return 1
             }
@@ -19,5 +19,4 @@ public object MinMaxResourceSelectionPolicy : ResourceSelectionPolicy {
     }
 
     override fun toString(): String = "MinMax"
-
 }

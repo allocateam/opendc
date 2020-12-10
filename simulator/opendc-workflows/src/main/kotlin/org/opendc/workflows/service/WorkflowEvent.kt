@@ -39,7 +39,7 @@ public sealed class WorkflowEvent {
      */
     public data class JobStarted(
         override val service: WorkflowService,
-        public val job: Job,
+        public val jobState: JobState,
         public val time: Long
     ) : WorkflowEvent()
 

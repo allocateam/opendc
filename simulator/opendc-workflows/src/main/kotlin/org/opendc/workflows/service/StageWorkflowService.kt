@@ -237,7 +237,7 @@ public class StageWorkflowService(
             iterator.remove()
             jobQueue.add(jobInstance)
             activeJobs += jobInstance
-            eventFlow.emit(WorkflowEvent.JobStarted(this, jobInstance.job, clock.millis()))
+            eventFlow.emit(WorkflowEvent.JobStarted(this, jobInstance, clock.millis()))
             rootListener.jobStarted(jobInstance)
         }
 
@@ -279,7 +279,8 @@ public class StageWorkflowService(
         // T3 Per task
         while (taskQueue.isNotEmpty()) {
             val instance = taskQueue.peek()
-            val host: Node? = available.firstOrNull()
+            val host: Node? = available.sortedWith(resourceSelectionPolicy).firstOrNull()
+            //val host: Node? = available.firstOrNull()
 
             if (host != null) {
                 // T4 Submit task to machine
