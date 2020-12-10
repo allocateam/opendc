@@ -238,7 +238,7 @@ public class StageWorkflowService(
             iterator.remove()
             jobQueue.add(jobInstance)
             activeJobs += jobInstance
-            eventFlow.emit(WorkflowEvent.JobStarted(this, jobInstance.job, clock.millis()))
+            eventFlow.emit(WorkflowEvent.JobStarted(this, jobInstance, clock.millis()))
             rootListener.jobStarted(jobInstance)
         }
 

@@ -8,9 +8,9 @@ import kotlinx.coroutines.test.TestCoroutineScope
 import mu.KotlinLogging
 import org.opendc.compute.core.metal.service.ProvisioningService
 import org.opendc.experiments.allocateam.experiment.monitor.RunMonitor
-import org.opendc.experiments.allocateam.policies.LotteryPolicy
 import org.opendc.experiments.allocateam.policies.MaxMinResourceSelectionPolicy
 import org.opendc.experiments.allocateam.policies.MinMinResourceSelectionPolicy
+import org.opendc.experiments.allocateam.policies.LotteryPolicy
 import org.opendc.experiments.sc20.runner.TrialExperimentDescriptor
 import org.opendc.experiments.sc20.runner.execution.ExperimentExecutionContext
 import org.opendc.format.environment.sc18.Sc18EnvironmentReader

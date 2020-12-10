@@ -31,6 +31,7 @@ public class ParquetRunCompletedEventWriter(path: File) :
             record.put("resource_selection_policy", scenario.resourceSelectionPolicy)
             record.put("task_eligibility_policy", scenario.taskEligibilityPolicy)
             record.put("task_throughput", runMetrics.taskThroughput)
+            record.put("turnaround_time", runMetrics.turnaroundTime)
         }
 
         private val schema: Schema = SchemaBuilder
@@ -47,6 +48,7 @@ public class ParquetRunCompletedEventWriter(path: File) :
             .name("resource_selection_policy").type().stringType().noDefault()
             .name("task_eligibility_policy").type().stringType().noDefault()
             .name("task_throughput").type().doubleType().noDefault()
+            .name("turnaround_time").type().doubleType().noDefault()
             .endRecord()
     }
 }

@@ -29,15 +29,17 @@ public class RunMonitor(private val run: Run, private val clock: Clock) {
     private var finishedTasks = 0
 
     private val startTimesPerJob = mutableMapOf<Job, Long>()
+    private val submissionTimesPerJob = mutableMapOf<Job, Long>()
+    private val turnaroundTimes = mutableListOf<Long>()
 
     /**
      * Generate all metrics from the intermediate metric aggregators
      */
     public fun generateMetrics() {
-        // Metrics
         val taskThroughput = this.calculateTaskThroughput()
+        val turnaroundTime = this.calculateTurnaroundTime()
 
-        val runMetrics = RunMetrics(taskThroughput)
+        val runMetrics = RunMetrics(taskThroughput, turnaroundTime)
         val runCompletedEvent = RunCompletedEvent(run, runMetrics, clock.millis())
         val experiment = run.parent.parent.parent
         experiment.storeRunCompletedEvent(runCompletedEvent)
@@ -46,6 +48,10 @@ public class RunMonitor(private val run: Run, private val clock: Clock) {
     private fun calculateTaskThroughput(): Double {
         val runDuration = this.getRunDuration()
         return (finishedTasks / runDuration).toDouble()
+    }
+
+    private fun calculateTurnaroundTime(): Double {
+        return (turnaroundTimes.sum() / turnaroundTimes.count()).toDouble()
     }
 
     private fun getRunDuration(): Long {
@@ -59,22 +65,21 @@ public class RunMonitor(private val run: Run, private val clock: Clock) {
     }
 
     public fun reportJobStarted(event: WorkflowEvent.JobStarted) {
-        startTimesPerJob[event.job] = event.time
+        startTimesPerJob[event.jobState.job] = event.time
         this.startedJobs += 1
-//        logger.info { "Job ${event.job.uid} started" }
+
+        // FIXME(gm): create a proper WorkflowEvent for this
+        submissionTimesPerJob[event.jobState.job] = event.jobState.submittedAt
     }
 
-    public fun reportJobSubmitted(event: WorkflowEvent.JobStarted) {
-        startTimesPerJob[event.job] = event.time
-    }
+    public fun reportJobFinished(event: WorkflowEvent.JobFinished) {
+        turnaroundTimes.add(
+            event.time - submissionTimesPerJob[event.job]!!
+        )
 
-    public fun reportJobFinished(time: Long, event: WorkflowEvent.JobFinished) {
-        val startTime = startTimesPerJob[event.job]!!
-        val duration = event.time - startTime
         startTimesPerJob.remove(event.job)
+        submissionTimesPerJob.remove(event.job)
         this.finishedJobs += 1
-//        logger.info { "$finishedJobs jobs finished of ${this.startedJobs} started and completed " +
-//            "jobs (${event.job.tasks.size} tasks)" }
     }
 
     public fun reportTaskStarted() {
