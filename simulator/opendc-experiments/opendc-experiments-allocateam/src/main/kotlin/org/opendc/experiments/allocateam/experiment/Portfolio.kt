@@ -25,7 +25,7 @@ public abstract class Portfolio(
     /**
      * The allocation policies to consider.
      */
-    protected abstract val allocationPolicies: List<String>
+    protected abstract val resourceAllocationPolicies: List<String>
 
     /**
      * The number of repetitions to perform.
@@ -39,7 +39,7 @@ public abstract class Portfolio(
         var id = 0
         for (topology in topologies) {
             for (workload in workloads) {
-                for (allocationPolicy in allocationPolicies) {
+                for (allocationPolicy in resourceAllocationPolicies) {
                     yield(
                         Scenario(
                             this@Portfolio,
@@ -47,7 +47,7 @@ public abstract class Portfolio(
                             repetitions,
                             topology,
                             workload,
-                            allocationPolicy,
+                            allocationPolicy
                         )
                     )
                 }

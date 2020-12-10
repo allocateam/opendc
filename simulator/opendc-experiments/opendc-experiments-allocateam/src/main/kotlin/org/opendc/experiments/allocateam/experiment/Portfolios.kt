@@ -7,7 +7,7 @@ import org.opendc.experiments.sc20.experiment.model.Workload
  * Concrete implementations of [Portfolio].
  */
 
-public class SmokeTestPortfolio(parent: Experiment, id: Int) : Portfolio(parent, id, "smokeTest") {
+public class AllocateamPortfolio(parent: Experiment, id: Int) : Portfolio(parent, id, "allocateam") {
     override val topologies: List<Topology> = listOf(
         Topology("single")
     )
@@ -17,9 +17,10 @@ public class SmokeTestPortfolio(parent: Experiment, id: Int) : Portfolio(parent,
         Workload("askalon_ee", 1.0)
     )
 
-    override val allocationPolicies: List<String> = listOf(
+    override val resourceAllocationPolicies: List<String> = listOf(
         "min-min",
-        "max-min"
+        "max-min",
+        "round-robin"
     )
 
     override val repetitions: Int = 4

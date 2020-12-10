@@ -20,6 +20,8 @@ import org.opendc.workflows.service.WorkflowSchedulerMode
 import org.opendc.workflows.service.stage.job.NullJobAdmissionPolicy
 import org.opendc.workflows.service.stage.job.SubmissionTimeJobOrderPolicy
 import org.opendc.workflows.service.stage.resource.FunctionalResourceFilterPolicy
+import org.opendc.experiments.allocateam.policies.RoundRobinPolicy
+import org.opendc.workflows.service.stage.resource.FirstFitResourceSelectionPolicy
 import org.opendc.workflows.service.stage.task.NullTaskEligibilityPolicy
 import org.opendc.workflows.service.stage.task.SubmissionTimeTaskOrderPolicy
 import java.io.File
@@ -46,15 +48,21 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
 
         val flopsPerCore = 1105000000000  // based on FLOPS of i7 6700k per core
 
-        val allocationPolicy = when (parent.allocationPolicy) {
+        val resourceSelectionPolicy = when (parent.resourceAllocationPolicy) {
             "min-min" -> MinMinResourceSelectionPolicy(flopsPerCore)
             "max-min" -> MaxMinResourceSelectionPolicy(flopsPerCore)
-            else -> throw IllegalArgumentException("Unknown policy ${parent.allocationPolicy}")
+            "round-robin" -> FirstFitResourceSelectionPolicy
+            else -> throw IllegalArgumentException("Unknown policy ${parent.resourceAllocationPolicy}")
+        }
+
+        val taskEligibilityPolicy = when (parent.resourceAllocationPolicy) {
+            "round-robin" -> RoundRobinPolicy(30)
+            else -> NullTaskEligibilityPolicy
         }
 
         val schedulerAsync = testScope.async {
             // Environment file describing topology can be found in the resources of this project
-            var resourcesFile = File("/env/", parent.topology.name + ".json").absolutePath
+            val resourcesFile = File("/env/", parent.topology.name + ".json").absolutePath
             val environment = Sc18EnvironmentReader(object {}.javaClass.getResourceAsStream(resourcesFile))
                 .use { it.construct(testScope, clock) }
 
@@ -71,7 +79,7 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
                 jobOrderPolicy = SubmissionTimeJobOrderPolicy(),
 
                 // All tasks are eligible to be scheduled
-                taskEligibilityPolicy = NullTaskEligibilityPolicy,
+                taskEligibilityPolicy = taskEligibilityPolicy,
 
                 // Order tasks by their submission time
                 taskOrderPolicy = SubmissionTimeTaskOrderPolicy(),
@@ -80,7 +88,7 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
                 resourceFilterPolicy = FunctionalResourceFilterPolicy,
 
                 // Actual allocation policy (select the resource on which to place the task)
-                resourceSelectionPolicy = allocationPolicy,
+                resourceSelectionPolicy = resourceSelectionPolicy,
             )
         }
 
