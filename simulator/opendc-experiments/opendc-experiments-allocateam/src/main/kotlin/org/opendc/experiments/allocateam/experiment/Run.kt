@@ -8,7 +8,8 @@ import kotlinx.coroutines.test.TestCoroutineScope
 import mu.KotlinLogging
 import org.opendc.compute.core.metal.service.ProvisioningService
 import org.opendc.experiments.allocateam.experiment.monitor.RunMonitor
-import org.opendc.experiments.allocateam.policies.MinMaxResourceSelectionPolicy
+import org.opendc.experiments.allocateam.policies.MaxMinResourceSelectionPolicy
+import org.opendc.experiments.allocateam.policies.MinMinResourceSelectionPolicy
 import org.opendc.experiments.sc20.runner.TrialExperimentDescriptor
 import org.opendc.experiments.sc20.runner.execution.ExperimentExecutionContext
 import org.opendc.format.environment.sc18.Sc18EnvironmentReader
@@ -18,7 +19,6 @@ import org.opendc.workflows.service.StageWorkflowService
 import org.opendc.workflows.service.WorkflowSchedulerMode
 import org.opendc.workflows.service.stage.job.NullJobAdmissionPolicy
 import org.opendc.workflows.service.stage.job.SubmissionTimeJobOrderPolicy
-import org.opendc.workflows.service.stage.resource.FirstFitResourceSelectionPolicy
 import org.opendc.workflows.service.stage.resource.FunctionalResourceFilterPolicy
 import org.opendc.workflows.service.stage.task.NullTaskEligibilityPolicy
 import org.opendc.workflows.service.stage.task.SubmissionTimeTaskOrderPolicy
@@ -44,9 +44,11 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
 
         val monitor = RunMonitor(this, clock)
 
+        val flopsPerCore = 1105000000000  // based on FLOPS of i7 6700k per core
+
         val allocationPolicy = when (parent.allocationPolicy) {
-            "first-fit" -> FirstFitResourceSelectionPolicy
-            "min-max" -> MinMaxResourceSelectionPolicy
+            "min-min" -> MinMinResourceSelectionPolicy(flopsPerCore)
+            "max-min" -> MaxMinResourceSelectionPolicy(flopsPerCore)
             else -> throw IllegalArgumentException("Unknown policy ${parent.allocationPolicy}")
         }
 

@@ -24,21 +24,19 @@ package org.opendc.workflows.service.stage.resource
 
 import org.opendc.compute.core.metal.Node
 import org.opendc.workflows.service.StageWorkflowService
+import org.opendc.workflows.service.TaskState
 import java.util.*
+import kotlin.random.Random
 
 /**
  * A [ResourceSelectionPolicy] that randomly orders the machines.
  */
 public object RandomResourceSelectionPolicy : ResourceSelectionPolicy {
-    override fun invoke(scheduler: StageWorkflowService): Comparator<Node> = object : Comparator<Node> {
-        private val ids: Map<Node, Long>
 
-        init {
-            val random = Random(123)
-            ids = scheduler.nodes.associateWith { random.nextLong() }
+    override fun invoke(scheduler: StageWorkflowService): (List<Node>, TaskState) -> Node? {
+        return { availableNodes, _ ->
+            availableNodes.randomOrNull(Random(123))
         }
-
-        override fun compare(o1: Node, o2: Node): Int = compareValuesBy(o1, o2) { ids[it] }
     }
 
     override fun toString(): String = "Random"
