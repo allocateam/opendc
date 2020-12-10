@@ -9,10 +9,7 @@ import com.github.ajalt.clikt.parameters.types.choice
 import com.github.ajalt.clikt.parameters.types.file
 import com.github.ajalt.clikt.parameters.types.int
 import mu.KotlinLogging
-import org.opendc.experiments.allocateam.experiment.Experiment
-import org.opendc.experiments.allocateam.experiment.Portfolio
-import org.opendc.experiments.allocateam.experiment.RoundRobinPortofolio
-import org.opendc.experiments.allocateam.experiment.SmokeTestPortfolio
+import org.opendc.experiments.allocateam.experiment.*
 import org.opendc.experiments.sc20.reporter.ConsoleExperimentReporter
 import org.opendc.experiments.sc20.runner.ExperimentDescriptor
 import org.opendc.experiments.sc20.runner.execution.ThreadPoolExperimentScheduler
@@ -40,8 +37,7 @@ public class ExperimentCli : CliktCommand(name = "allocateam") {
      */
     private val portfolios by option("--portfolio", help = "portfolio of scenarios to explore")
         .choice(
-            "smokeTest" to { experiment: Experiment, i: Int -> SmokeTestPortfolio(experiment, i) },
-            "roundRobin" to { experiment: Experiment, i: Int -> RoundRobinPortofolio(experiment, i) }
+            "smokeTest" to { experiment: Experiment, i: Int -> AllocateamPortfolio(experiment, i) }
                 as (Experiment, Int) -> Portfolio,
             ignoreCase = true
         )

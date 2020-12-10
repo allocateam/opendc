@@ -34,7 +34,7 @@ public suspend fun attachMonitor(
                 }
 
                 is WorkflowEvent.JobFinished -> {
-                    monitor.reportJobFinished(clock.millis(), event)
+                    monitor.reportJobFinished(event)
                 }
 
                 is WorkflowEvent.TaskStarted -> {

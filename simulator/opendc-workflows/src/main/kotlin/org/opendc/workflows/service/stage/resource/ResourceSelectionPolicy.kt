@@ -23,10 +23,12 @@
 package org.opendc.workflows.service.stage.resource
 
 import org.opendc.compute.core.metal.Node
+import org.opendc.workflows.service.TaskState
 import org.opendc.workflows.service.stage.StagePolicy
+import java.util.*
 
 /**
  * This interface represents the **R5** stage of the Reference Architecture for Schedulers and matches the the selected
  * task with a (set of) resource(s), using policies such as First-Fit, Worst-Fit, and Best-Fit.
  */
-public interface ResourceSelectionPolicy : StagePolicy<Comparator<Node>>
+public interface ResourceSelectionPolicy : StagePolicy<(List<Node>, TaskState) -> Node?>

@@ -8,7 +8,8 @@ import kotlinx.coroutines.test.TestCoroutineScope
 import mu.KotlinLogging
 import org.opendc.compute.core.metal.service.ProvisioningService
 import org.opendc.experiments.allocateam.experiment.monitor.RunMonitor
-import org.opendc.experiments.allocateam.policies.MinMaxResourceSelectionPolicy
+import org.opendc.experiments.allocateam.policies.MaxMinResourceSelectionPolicy
+import org.opendc.experiments.allocateam.policies.MinMinResourceSelectionPolicy
 import org.opendc.experiments.sc20.runner.TrialExperimentDescriptor
 import org.opendc.experiments.sc20.runner.execution.ExperimentExecutionContext
 import org.opendc.format.environment.sc18.Sc18EnvironmentReader
@@ -18,9 +19,9 @@ import org.opendc.workflows.service.StageWorkflowService
 import org.opendc.workflows.service.WorkflowSchedulerMode
 import org.opendc.workflows.service.stage.job.NullJobAdmissionPolicy
 import org.opendc.workflows.service.stage.job.SubmissionTimeJobOrderPolicy
-import org.opendc.workflows.service.stage.resource.FirstFitResourceSelectionPolicy
 import org.opendc.workflows.service.stage.resource.FunctionalResourceFilterPolicy
 import org.opendc.experiments.allocateam.policies.RoundRobinPolicy
+import org.opendc.workflows.service.stage.resource.FirstFitResourceSelectionPolicy
 import org.opendc.workflows.service.stage.task.NullTaskEligibilityPolicy
 import org.opendc.workflows.service.stage.task.SubmissionTimeTaskOrderPolicy
 import java.io.File
@@ -45,21 +46,23 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
 
         val monitor = RunMonitor(this, clock)
 
-        val resourceSelectionPolicy = when (parent.resourceSelectionPolicy) {
-            "first-fit" -> FirstFitResourceSelectionPolicy
-            "min-max" -> MinMaxResourceSelectionPolicy
-            else -> throw IllegalArgumentException("Unknown policy ${parent.resourceSelectionPolicy}")
+        val flopsPerCore = 1105000000000  // based on FLOPS of i7 6700k per core
+
+        val resourceSelectionPolicy = when (parent.resourceAllocationPolicy) {
+            "min-min" -> MinMinResourceSelectionPolicy(flopsPerCore)
+            "max-min" -> MaxMinResourceSelectionPolicy(flopsPerCore)
+            "round-robin" -> FirstFitResourceSelectionPolicy
+            else -> throw IllegalArgumentException("Unknown policy ${parent.resourceAllocationPolicy}")
         }
 
-        val taskEligibilityPolicy = when(parent.taskEligibilityPolicy) {
-            "null" -> NullTaskEligibilityPolicy
-            "roundRobin" -> RoundRobinPolicy(30)
+        val taskEligibilityPolicy = when (parent.resourceAllocationPolicy) {
+            "round-robin" -> RoundRobinPolicy(30)
             else -> NullTaskEligibilityPolicy
         }
 
         val schedulerAsync = testScope.async {
             // Environment file describing topology can be found in the resources of this project
-            var resourcesFile = File("/env/", parent.topology.name + ".json").absolutePath
+            val resourcesFile = File("/env/", parent.topology.name + ".json").absolutePath
             val environment = Sc18EnvironmentReader(object {}.javaClass.getResourceAsStream(resourcesFile))
                 .use { it.construct(testScope, clock) }
 

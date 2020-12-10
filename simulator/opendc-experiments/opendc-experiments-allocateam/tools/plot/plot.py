@@ -42,7 +42,7 @@ def reformat_large_tick_values(tick_val, pos):
     return new_tick_format
 
 class Plotter():
-    OUTPUT_PATH = f"{os.path.dirname(__file__)}/plots/{datetime.now()}"
+    OUTPUT_PATH = f"{Path(__file__).parent.resolve()}/{datetime.now()}"
 
     def __init__(self, path: str):
         self.raw_data = pd.read_parquet(path)
@@ -60,10 +60,11 @@ class Plotter():
     def plot_all(self):
         print("Plotting..")
         self._plot_column('task_throughput', unit="tasks per second")
+        self._plot_column('turnaround_time', unit="time")
         print(f"Plots successfully stored in {self.OUTPUT_PATH}")
 
     def _plot_column(self, column: str, unit: str = None):
-        self.data.plot.barh(x='resource_selection_policy', y=column, )
+        self.data.plot.barh(x='allocation_policy', y=column)
         plt.ylabel("Allocation policy")
         plt.xlabel(unit)
 
@@ -79,13 +80,15 @@ def main():
     """Usage: python3 plot.py <path_to_csv>
     See example.csv for an example of the input data.
     """
+
+    default_metrics_location = Path(__file__).parent / "../../data/metrics.parquet"
     parser = argparse.ArgumentParser(description="Plot metrics for the Allocateam experiment.")
     parser.add_argument(
         "path",
         nargs='?',
         type=str,
         help="The path to the input csv file.",
-        default="data/metrics.parquet"
+        default=default_metrics_location.resolve(),
     )
     args = parser.parse_args()
 
