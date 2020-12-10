@@ -33,8 +33,6 @@ import org.opendc.compute.core.ServerEvent
 import org.opendc.compute.core.ServerState
 import org.opendc.compute.core.metal.Node
 import org.opendc.compute.core.metal.service.ProvisioningService
-import org.opendc.compute.simulator.SimWorkloadImage
-import org.opendc.simulator.compute.workload.SimFlopsWorkload
 import org.opendc.utils.flow.EventFlow
 import org.opendc.workflows.service.stage.job.JobAdmissionPolicy
 import org.opendc.workflows.service.stage.job.JobOrderPolicy
@@ -239,7 +237,7 @@ public class StageWorkflowService(
             iterator.remove()
             jobQueue.add(jobInstance)
             activeJobs += jobInstance
-            eventFlow.emit(WorkflowEvent.JobStarted(this, jobInstance.job, clock.millis()))
+            eventFlow.emit(WorkflowEvent.JobStarted(this, jobInstance, clock.millis()))
             rootListener.jobStarted(jobInstance)
         }
 
