@@ -52,7 +52,7 @@ public class LotteryPortfolio(parent: Experiment, id: Int) : Portfolio(parent, i
     )
 
     override val workloads: List<Workload> = listOf(
-//        Workload("shell", 1.0),
+        Workload("shell", 1.0),
         Workload("askalon_ee", 1.0)
     )
 

@@ -83,9 +83,15 @@ public data class LotteryPolicy(public val lotteryRounds: Int) : TaskEligibility
                     return TaskEligibilityPolicy.Advice.STOP
                 }
 
-                val taskLotteryTicket = rand(0, 100)
-                if(taskLotteryTicket > 50) {
-                    numScheduledSoFar++
+                val taskHasDependencies:Boolean = task.task.dependencies.isNotEmpty()
+                val lotteryTickets:IntArray =
+                    if(taskHasDependencies)
+                    IntArray(40){60 + (it + 1)} else //40% probability for tasks with dependencies
+                    IntArray(60){it + 1} //60% probability for tasks without dependencies
+
+                val taskLotteryTicket = rand(1, 100)
+
+                if(lotteryTickets.contains(taskLotteryTicket)) {
                     return TaskEligibilityPolicy.Advice.ADMIT
                 }
 
