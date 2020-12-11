@@ -5,6 +5,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import mu.KotlinLogging
+import org.opendc.experiments.allocateam.experiment.monitor.ParquetExperimentMonitor
 import org.opendc.experiments.allocateam.experiment.monitor.RunMonitor
 import org.opendc.workflows.service.StageWorkflowService
 import org.opendc.workflows.service.WorkflowEvent
@@ -23,9 +24,8 @@ public suspend fun attachMonitor(
     coroutineScope: CoroutineScope,
     clock: Clock,
     scheduler: StageWorkflowService,
-    monitor: RunMonitor
+    monitor: ParquetExperimentMonitor
 ) {
-
     scheduler.events
         .onEach { event ->
             when (event) {
@@ -34,12 +34,9 @@ public suspend fun attachMonitor(
                 }
 
                 is WorkflowEvent.JobFinished -> {
-                    monitor.reportJobFinished(event)
+                    monitor.reportJobFinished(clock.millis(), event)
                 }
 
-                is WorkflowEvent.TaskStarted -> {
-                    monitor.reportTaskStarted()
-                }
                 is WorkflowEvent.TaskFinished -> {
                     monitor.reportTaskFinished()
                 }

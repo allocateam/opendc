@@ -7,7 +7,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestCoroutineScope
 import mu.KotlinLogging
 import org.opendc.compute.core.metal.service.ProvisioningService
-import org.opendc.experiments.allocateam.experiment.monitor.RunMonitor
+import org.opendc.experiments.allocateam.experiment.monitor.ParquetExperimentMonitor
 import org.opendc.experiments.allocateam.policies.LotteryPolicy
 import org.opendc.experiments.allocateam.policies.MaxMinResourceSelectionPolicy
 import org.opendc.experiments.allocateam.policies.MinMinResourceSelectionPolicy
@@ -45,23 +45,27 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
         val testScope = TestCoroutineScope()
         val clock = DelayControllerClockAdapter(testScope)
 
-        val monitor = RunMonitor(this, clock)
-
         val flopsPerCore = 1105000000000  // based on FLOPS of i7 6700k per core
 
-        val resourceSelectionPolicy = when (parent.resourceAllocationPolicy) {
+        val resourceSelectionPolicy = when (parent.allocationPolicy) {
             "min-min" -> MinMinResourceSelectionPolicy(flopsPerCore)
             "max-min" -> MaxMinResourceSelectionPolicy(flopsPerCore)
             "round-robin" -> FirstFitResourceSelectionPolicy
             "lottery" -> FirstFitResourceSelectionPolicy
-            else -> throw IllegalArgumentException("Unknown policy ${parent.resourceAllocationPolicy}")
+            else -> throw IllegalArgumentException("Unknown policy ${parent.allocationPolicy}")
         }
 
-        val taskEligibilityPolicy = when (parent.resourceAllocationPolicy) {
+        val taskEligibilityPolicy = when (parent.allocationPolicy) {
             "round-robin" -> RoundRobinPolicy(30)
             "lottery" -> LotteryPolicy(50)
             else -> NullTaskEligibilityPolicy
         }
+
+        val monitor = ParquetExperimentMonitor(
+            parent.parent.parent.output,
+            "portfolio_id=${parent.parent.id}/scenario_id=${parent.id}/run_id=$id",
+            4096
+        )
 
         val schedulerAsync = testScope.async {
             // Environment file describing topology can be found in the resources of this project
@@ -106,12 +110,12 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
             )
         }
 
-        this.runStatus = RunStatus.RUNNING
-
         testScope.launch {
             val tracePath = File(experiment.traces.absolutePath, parent.workload.name).absolutePath
             val reader = WtfTraceReader(tracePath)
             val scheduler = schedulerAsync.await()
+
+            monitor.reportRunStarted(clock.millis())
             while (reader.hasNext()) {
                 val (time, job) = reader.next()
                 delay(max(0, time * 1000 - clock.millis()))
@@ -122,8 +126,8 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
         try {
             testScope.advanceUntilIdle()
         } finally {
-            this.runStatus = RunStatus.FINISHED
-            monitor.generateMetrics()
+            monitor.reportRunFinished(clock.millis())
+            monitor.close()
         }
     }
 }

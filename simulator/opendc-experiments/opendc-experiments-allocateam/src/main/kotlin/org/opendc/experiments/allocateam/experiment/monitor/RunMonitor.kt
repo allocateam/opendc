@@ -4,7 +4,6 @@ import mu.KotlinLogging
 import org.opendc.experiments.allocateam.experiment.Run
 import org.opendc.experiments.allocateam.experiment.RunStatus
 import org.opendc.experiments.allocateam.telemetry.RunMetrics
-import org.opendc.experiments.allocateam.telemetry.events.RunCompletedEvent
 import org.opendc.workflows.service.WorkflowEvent
 import org.opendc.workflows.workload.Job
 import java.time.Clock
@@ -40,9 +39,9 @@ public class RunMonitor(private val run: Run, private val clock: Clock) {
         val turnaroundTime = this.calculateTurnaroundTime()
 
         val runMetrics = RunMetrics(taskThroughput, turnaroundTime)
-        val runCompletedEvent = RunCompletedEvent(run, runMetrics, clock.millis())
-        val experiment = run.parent.parent.parent
-        experiment.storeRunCompletedEvent(runCompletedEvent)
+//        val runCompletedEvent = RunCompletedEvent(run, runMetrics, clock.millis())
+//        val experiment = run.parent.parent.parent
+//        experiment.storeRunCompletedEvent(runCompletedEvent)
     }
 
     private fun calculateTaskThroughput(): Double {

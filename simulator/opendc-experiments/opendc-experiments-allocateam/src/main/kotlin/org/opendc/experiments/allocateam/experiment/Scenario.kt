@@ -14,7 +14,7 @@ public class Scenario(
     public val repetitions: Int,
     public val topology: Topology,
     public val workload: Workload,
-    public val resourceAllocationPolicy: String,
+    public val allocationPolicy: String,
 ) : ContainerExperimentDescriptor() {
     override val children: Sequence<ExperimentDescriptor> = sequence {
         repeat(repetitions) {
