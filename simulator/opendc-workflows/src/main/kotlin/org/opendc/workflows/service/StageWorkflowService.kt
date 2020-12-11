@@ -224,6 +224,7 @@ public class StageWorkflowService(
     @OptIn(ExperimentalCoroutinesApi::class)
     internal suspend fun schedule() {
         // J2 Create list of eligible jobs
+        rootListener.cycleStarted(this)
         val iterator = incomingJobs.iterator()
         while (iterator.hasNext()) {
             val jobInstance = iterator.next()
@@ -300,6 +301,7 @@ public class StageWorkflowService(
                 break
             }
         }
+        rootListener.cycleFinished(this)
     }
 
     private suspend fun stateChanged(server: Server) {

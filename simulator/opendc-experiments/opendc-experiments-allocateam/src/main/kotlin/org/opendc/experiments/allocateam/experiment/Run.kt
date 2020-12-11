@@ -8,6 +8,7 @@ import kotlinx.coroutines.test.TestCoroutineScope
 import mu.KotlinLogging
 import org.opendc.compute.core.metal.service.ProvisioningService
 import org.opendc.experiments.allocateam.experiment.monitor.RunMonitor
+import org.opendc.experiments.allocateam.policies.LotteryPolicy
 import org.opendc.experiments.allocateam.policies.MaxMinResourceSelectionPolicy
 import org.opendc.experiments.allocateam.policies.MinMinResourceSelectionPolicy
 import org.opendc.experiments.sc20.runner.TrialExperimentDescriptor
@@ -52,11 +53,13 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
             "min-min" -> MinMinResourceSelectionPolicy(flopsPerCore)
             "max-min" -> MaxMinResourceSelectionPolicy(flopsPerCore)
             "round-robin" -> FirstFitResourceSelectionPolicy
+            "lottery" -> FirstFitResourceSelectionPolicy
             else -> throw IllegalArgumentException("Unknown policy ${parent.resourceAllocationPolicy}")
         }
 
         val taskEligibilityPolicy = when (parent.resourceAllocationPolicy) {
             "round-robin" -> RoundRobinPolicy(30)
+            "lottery" -> LotteryPolicy(50)
             else -> NullTaskEligibilityPolicy
         }
 

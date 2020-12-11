@@ -20,7 +20,8 @@ public class AllocateamPortfolio(parent: Experiment, id: Int) : Portfolio(parent
     override val resourceAllocationPolicies: List<String> = listOf(
         "min-min",
         "max-min",
-        "round-robin"
+        "round-robin",
+        "lottery"
     )
 
     override val repetitions: Int = 4
