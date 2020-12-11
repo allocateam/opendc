@@ -53,13 +53,13 @@ public data class RoundRobinPolicy(public val quanta: Int) : TaskEligibilityPoli
             }
 
             override fun jobStarted(job: JobState) {
-                logger.info("Job started: ${job.job.uid} number of jobs started: ${++numJobsStarted}")
+//                logger.info("Job started: ${job.job.uid} number of jobs started: ${++numJobsStarted}")
                 val queuedJob = QueuedJob(job.job.uid, mutableSetOf(), 0)
                 activeQueue.add(queuedJob)
             }
 
             override fun jobFinished(job: JobState) {
-                logger.info("Job finished: ${job.job.uid} number of jobs finished: ${++numJobsFinished}")
+//                logger.info("Job finished: ${job.job.uid} number of jobs finished: ${++numJobsFinished}")
             }
 
             override fun taskReady(task: TaskState) {
@@ -77,7 +77,7 @@ public data class RoundRobinPolicy(public val quanta: Int) : TaskEligibilityPoli
                 // If we already scheduled a quanta amount during this batch, we stop scheduling any more tasks for this
                 // batch
                 if(numScheduledSoFar + 1 > quanta) {
-                    logger.info("Quanta of $quanta exceeded")
+//                    logger.info("Quanta of $quanta exceeded")
                     numScheduledSoFar = 0
                     return TaskEligibilityPolicy.Advice.STOP
                 }
@@ -118,7 +118,7 @@ public data class RoundRobinPolicy(public val quanta: Int) : TaskEligibilityPoli
                 }
 
                 numScheduledSoFar++
-                logger.info("Scheduling job: ${task.job.job.uid}, task: ${task.task.uid}")
+//                logger.info("Scheduling job: ${task.job.job.uid}, task: ${task.task.uid}")
                 return TaskEligibilityPolicy.Advice.ADMIT
             }
         }
