@@ -7,6 +7,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestCoroutineScope
 import mu.KotlinLogging
 import org.opendc.compute.core.metal.service.ProvisioningService
+import org.opendc.compute.core.metal.service.SimpleProvisioningService
+import org.opendc.experiments.allocateam.environment.AllocateamEnvironmentReader
 import org.opendc.experiments.allocateam.experiment.monitor.ParquetExperimentMonitor
 import org.opendc.experiments.allocateam.policies.LotteryPolicy
 import org.opendc.experiments.allocateam.policies.MaxMinResourceSelectionPolicy
@@ -67,16 +69,18 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
             4096
         )
 
-        val schedulerAsync = testScope.async {
-            // Environment file describing topology can be found in the resources of this project
-            val resourcesFile = File("/env/", parent.topology.name + ".json").absolutePath
-            val environment = Sc18EnvironmentReader(object {}.javaClass.getResourceAsStream(resourcesFile))
-                .use { it.construct(testScope, clock) }
+        // Environment file describing topology can be found in the resources of this project
+        val resourcesFile = File("/env/", parent.topology.name + ".json").absolutePath
+        val environment = AllocateamEnvironmentReader(object {}.javaClass.getResourceAsStream(resourcesFile))
+            .use { it.construct(testScope, clock) }
 
+        val provisioningService = environment.platforms[0].zones[0].services[ProvisioningService] as SimpleProvisioningService
+
+        val schedulerAsync = testScope.async {
             StageWorkflowService(
                 testScope,
                 clock,
-                environment.platforms[0].zones[0].services[ProvisioningService],
+                provisioningService,
                 mode = WorkflowSchedulerMode.Batch(100),
 
                 // Admit all jobs
@@ -106,7 +110,8 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
                 this,
                 clock,
                 scheduler,
-                monitor
+                monitor,
+                provisioningService
             )
         }
 

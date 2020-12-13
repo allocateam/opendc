@@ -32,6 +32,7 @@ import org.opendc.compute.core.Server
 import org.opendc.compute.core.ServerEvent
 import org.opendc.compute.core.ServerState
 import org.opendc.compute.core.metal.Node
+import org.opendc.compute.core.metal.driver.BareMetalDriver
 import org.opendc.compute.core.metal.service.ProvisioningService
 import org.opendc.utils.flow.EventFlow
 import org.opendc.workflows.service.stage.job.JobAdmissionPolicy

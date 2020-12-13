@@ -5,6 +5,10 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import mu.KotlinLogging
+import org.opendc.compute.core.metal.NodeEvent
+import org.opendc.compute.core.metal.driver.BareMetalDriver
+import org.opendc.compute.core.metal.service.SimpleProvisioningService
+import org.opendc.compute.simulator.SimBareMetalDriver
 import org.opendc.experiments.allocateam.experiment.monitor.ParquetExperimentMonitor
 import org.opendc.experiments.allocateam.experiment.monitor.RunMonitor
 import org.opendc.workflows.service.StageWorkflowService
@@ -24,7 +28,8 @@ public suspend fun attachMonitor(
     coroutineScope: CoroutineScope,
     clock: Clock,
     scheduler: StageWorkflowService,
-    monitor: ParquetExperimentMonitor
+    monitor: ParquetExperimentMonitor,
+    provisioningService: SimpleProvisioningService
 ) {
     scheduler.events
         .onEach { event ->
@@ -43,4 +48,14 @@ public suspend fun attachMonitor(
             }
         }
         .launchIn(coroutineScope)
+
+    for ((node, driver) in provisioningService.allNodes()) {
+        val powerModel = (driver as SimBareMetalDriver).powerDraw
+        powerModel
+            .onEach { wattage ->
+                val time = clock.millis()
+                monitor.reportPowerConsumption(time, node, wattage)
+            }
+            .launchIn(coroutineScope)
+    }
 }

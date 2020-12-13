@@ -1,8 +1,11 @@
 package org.opendc.experiments.allocateam.experiment.monitor
 
 import mu.KotlinLogging
-import org.opendc.experiments.allocateam.telemetry.events.TurnaroundTimeEvent
+import org.opendc.compute.core.metal.Node
+import org.opendc.experiments.allocateam.telemetry.events.PowerConsumptionEvent
 import org.opendc.experiments.allocateam.telemetry.events.TaskThroughputEvent
+import org.opendc.experiments.allocateam.telemetry.events.TurnaroundTimeEvent
+import org.opendc.experiments.allocateam.telemetry.writers.PowerConsumptionWriter
 import org.opendc.experiments.allocateam.telemetry.writers.TaskThroughputWriter
 import org.opendc.experiments.allocateam.telemetry.writers.TurnaroundTimeWriter
 import org.opendc.workflows.service.WorkflowEvent
@@ -24,6 +27,11 @@ public class ParquetExperimentMonitor(base: File, partition: String, bufferSize:
 
     private val taskThroughputWriter = TaskThroughputWriter(
         File(base, "task-throughput/$partition/data.parquet"),
+        bufferSize
+    )
+
+    private val powerConsumptionWriter = PowerConsumptionWriter(
+        File(base, "power-consumption/$partition/data.parquet"),
         bufferSize
     )
 
@@ -62,8 +70,19 @@ public class ParquetExperimentMonitor(base: File, partition: String, bufferSize:
         submissionTimesPerJob.remove(event.job)
     }
 
+    public fun reportPowerConsumption(time: Long, host: Node, draw: Double) {
+        powerConsumptionWriter.write(
+            PowerConsumptionEvent(
+                time,
+                host.uid.toString(),
+                draw
+            )
+        )
+    }
+
     public fun close() {
         turnaroundTimeWriter.close()
         taskThroughputWriter.close()
+        powerConsumptionWriter.close()
     }
 }
