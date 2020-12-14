@@ -314,7 +314,7 @@ public class StageWorkflowService(
                     WorkflowEvent.TaskStarted(
                         this@StageWorkflowService,
                         task.job.job,
-                        task.task,
+                        task,
                         clock.millis()
                     )
                 )
@@ -332,7 +332,7 @@ public class StageWorkflowService(
                     WorkflowEvent.TaskFinished(
                         this@StageWorkflowService,
                         task.job.job,
-                        task.task,
+                        task,
                         clock.millis()
                     )
                 )

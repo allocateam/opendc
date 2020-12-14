@@ -2,12 +2,15 @@ package org.opendc.experiments.allocateam.experiment.monitor
 
 import mu.KotlinLogging
 import org.opendc.compute.core.metal.Node
+import org.opendc.experiments.allocateam.telemetry.events.IdleTimeEvent
 import org.opendc.experiments.allocateam.telemetry.events.PowerConsumptionEvent
 import org.opendc.experiments.allocateam.telemetry.events.TaskThroughputEvent
 import org.opendc.experiments.allocateam.telemetry.events.TurnaroundTimeEvent
+import org.opendc.experiments.allocateam.telemetry.writers.IdleTimeWriter
 import org.opendc.experiments.allocateam.telemetry.writers.PowerConsumptionWriter
 import org.opendc.experiments.allocateam.telemetry.writers.TaskThroughputWriter
 import org.opendc.experiments.allocateam.telemetry.writers.TurnaroundTimeWriter
+import org.opendc.workflows.service.TaskState
 import org.opendc.workflows.service.WorkflowEvent
 import org.opendc.workflows.workload.Job
 import java.io.File
@@ -18,6 +21,8 @@ public class ParquetExperimentMonitor(base: File, partition: String, bufferSize:
     private var startTime: Long = 0
     private var finishedTasks = 0
 
+    private val lastFinishTimePerNode = mutableMapOf<Node, Long>()
+    private val idleTimePerNode = mutableMapOf<Node, Long>()
     private val submissionTimesPerJob = mutableMapOf<Job, Long>()
 
     private val turnaroundTimeWriter = TurnaroundTimeWriter(
@@ -32,6 +37,11 @@ public class ParquetExperimentMonitor(base: File, partition: String, bufferSize:
 
     private val powerConsumptionWriter = PowerConsumptionWriter(
         File(base, "power-consumption/$partition/data.parquet"),
+        bufferSize
+    )
+
+    private val idleTimeWriter = IdleTimeWriter(
+        File(base, "idle-time/$partition/data.parquet"),
         bufferSize
     )
 
@@ -50,12 +60,22 @@ public class ParquetExperimentMonitor(base: File, partition: String, bufferSize:
         )
     }
 
-    public fun reportTaskFinished() {
+    public fun reportTaskStarted(time: Long, task: TaskState) {
+        lastFinishTimePerNode[task.host]?.let { lastFinishTime ->
+            task.host?.let {
+                idleTimePerNode[it] = idleTimePerNode.getOrDefault(it, 0) + time - lastFinishTime
+            }
+            lastFinishTimePerNode -= task.host!!
+        }
+    }
+
+    public fun reportTaskFinished(time: Long, task: TaskState) {
         this.finishedTasks += 1
+        task.host?.let { lastFinishTimePerNode[it] = time }
     }
 
     public fun reportJobStarted(event: WorkflowEvent.JobStarted) {
-        // FIXME(gm): create a proper WorkflowEvent for this
+        // TODO(gm): create a proper WorkflowEvent for this
         submissionTimesPerJob[event.jobState.job] = event.jobState.submittedAt
     }
 
@@ -81,8 +101,19 @@ public class ParquetExperimentMonitor(base: File, partition: String, bufferSize:
     }
 
     public fun close() {
+        for ((node, duration) in idleTimePerNode) {
+            idleTimeWriter.write(
+                IdleTimeEvent(
+                    0,
+                    node.name,
+                    duration
+                )
+            )
+        }
+
         turnaroundTimeWriter.close()
         taskThroughputWriter.close()
         powerConsumptionWriter.close()
+        idleTimeWriter.close()
     }
 }

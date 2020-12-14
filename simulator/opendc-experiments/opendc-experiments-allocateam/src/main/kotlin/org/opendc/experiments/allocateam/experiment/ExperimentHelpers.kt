@@ -5,12 +5,9 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import mu.KotlinLogging
-import org.opendc.compute.core.metal.NodeEvent
-import org.opendc.compute.core.metal.driver.BareMetalDriver
 import org.opendc.compute.core.metal.service.SimpleProvisioningService
 import org.opendc.compute.simulator.SimBareMetalDriver
 import org.opendc.experiments.allocateam.experiment.monitor.ParquetExperimentMonitor
-import org.opendc.experiments.allocateam.experiment.monitor.RunMonitor
 import org.opendc.workflows.service.StageWorkflowService
 import org.opendc.workflows.service.WorkflowEvent
 import java.time.Clock
@@ -33,6 +30,7 @@ public suspend fun attachMonitor(
 ) {
     scheduler.events
         .onEach { event ->
+            val time = clock.millis()
             when (event) {
                 is WorkflowEvent.JobStarted -> {
                     monitor.reportJobStarted(event)
@@ -42,8 +40,12 @@ public suspend fun attachMonitor(
                     monitor.reportJobFinished(clock.millis(), event)
                 }
 
+                is WorkflowEvent.TaskStarted -> {
+                    monitor.reportTaskStarted(time, event.task)
+                }
+
                 is WorkflowEvent.TaskFinished -> {
-                    monitor.reportTaskFinished()
+                    monitor.reportTaskFinished(time, event.task)
                 }
             }
         }

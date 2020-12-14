@@ -58,7 +58,7 @@ public sealed class WorkflowEvent {
     public data class TaskStarted(
         override val service: WorkflowService,
         public val job: Job,
-        public val task: Task,
+        public val task: TaskState,
         public val time: Long
     ) : WorkflowEvent()
 
@@ -68,7 +68,7 @@ public sealed class WorkflowEvent {
     public data class TaskFinished(
         override val service: WorkflowService,
         public val job: Job,
-        public val task: Task,
+        public val task: TaskState,
         public val time: Long
     ) : WorkflowEvent()
 }

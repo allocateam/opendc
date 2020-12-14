@@ -13,18 +13,17 @@ import org.opendc.experiments.allocateam.experiment.monitor.ParquetExperimentMon
 import org.opendc.experiments.allocateam.policies.LotteryPolicy
 import org.opendc.experiments.allocateam.policies.MaxMinResourceSelectionPolicy
 import org.opendc.experiments.allocateam.policies.MinMinResourceSelectionPolicy
+import org.opendc.experiments.allocateam.policies.RoundRobinPolicy
 import org.opendc.experiments.sc20.runner.TrialExperimentDescriptor
 import org.opendc.experiments.sc20.runner.execution.ExperimentExecutionContext
-import org.opendc.format.environment.sc18.Sc18EnvironmentReader
 import org.opendc.format.trace.wtf.WtfTraceReader
 import org.opendc.simulator.utils.DelayControllerClockAdapter
 import org.opendc.workflows.service.StageWorkflowService
 import org.opendc.workflows.service.WorkflowSchedulerMode
 import org.opendc.workflows.service.stage.job.NullJobAdmissionPolicy
 import org.opendc.workflows.service.stage.job.SubmissionTimeJobOrderPolicy
-import org.opendc.workflows.service.stage.resource.FunctionalResourceFilterPolicy
-import org.opendc.experiments.allocateam.policies.RoundRobinPolicy
 import org.opendc.workflows.service.stage.resource.FirstFitResourceSelectionPolicy
+import org.opendc.workflows.service.stage.resource.FunctionalResourceFilterPolicy
 import org.opendc.workflows.service.stage.task.NullTaskEligibilityPolicy
 import org.opendc.workflows.service.stage.task.SubmissionTimeTaskOrderPolicy
 import java.io.File
@@ -39,8 +38,6 @@ private val logger = KotlinLogging.logger {}
  * A repetition of a scenario that runs the scenario on the simulator.
  */
 public data class Run(override val parent: Scenario, val id: Int, val seed: Int) : TrialExperimentDescriptor() {
-    public var runStatus: RunStatus = RunStatus.IDLE
-
     @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun invoke(context: ExperimentExecutionContext) {
         val experiment = parent.parent.parent

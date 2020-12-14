@@ -22,14 +22,14 @@ public abstract class Experiment(
     override val parent: ExperimentDescriptor? = null
 
     override suspend fun invoke(context: ExperimentExecutionContext) {
-        val writer = RunCompletedEventWriter(File(output, "experiments.parquet"))
-        try {
+        RunCompletedEventWriter(File(output, "experiments.parquet")).use { writer ->
             val listener = object : ExperimentExecutionListener by context.listener {
                 override fun descriptorRegistered(descriptor: ExperimentDescriptor) {
                     if (descriptor is Run) {
                         writer.write(RunCompletedEvent(descriptor, System.currentTimeMillis()))
                     }
-                        context.listener.descriptorRegistered(descriptor)
+
+                    context.listener.descriptorRegistered(descriptor)
                 }
             }
 
@@ -38,8 +38,6 @@ public abstract class Experiment(
             }
 
             super.invoke(newContext)
-        } finally {
-            writer.close()
         }
     }
 }
