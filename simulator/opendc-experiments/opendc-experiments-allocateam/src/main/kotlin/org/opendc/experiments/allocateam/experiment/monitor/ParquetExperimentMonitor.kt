@@ -2,14 +2,10 @@ package org.opendc.experiments.allocateam.experiment.monitor
 
 import mu.KotlinLogging
 import org.opendc.compute.core.metal.Node
-import org.opendc.experiments.allocateam.telemetry.events.IdleTimeEvent
-import org.opendc.experiments.allocateam.telemetry.events.PowerConsumptionEvent
-import org.opendc.experiments.allocateam.telemetry.events.TaskThroughputEvent
-import org.opendc.experiments.allocateam.telemetry.events.TurnaroundTimeEvent
-import org.opendc.experiments.allocateam.telemetry.writers.IdleTimeWriter
-import org.opendc.experiments.allocateam.telemetry.writers.PowerConsumptionWriter
-import org.opendc.experiments.allocateam.telemetry.writers.TaskThroughputWriter
-import org.opendc.experiments.allocateam.telemetry.writers.TurnaroundTimeWriter
+import org.opendc.compute.simulator.SimWorkloadImage
+import org.opendc.experiments.allocateam.telemetry.events.*
+import org.opendc.experiments.allocateam.telemetry.writers.*
+import org.opendc.simulator.compute.workload.SimFlopsWorkload
 import org.opendc.workflows.service.TaskState
 import org.opendc.workflows.service.WorkflowEvent
 import org.opendc.workflows.workload.Job
@@ -45,6 +41,11 @@ public class ParquetExperimentMonitor(base: File, partition: String, bufferSize:
         bufferSize
     )
 
+    private val utilisationWriter = UtilisationWriter(
+        File(base, "utilisation/$partition/data.parquet"),
+        bufferSize
+    )
+
     public fun reportRunStarted(time: Long) {
         startTime = time
     }
@@ -71,7 +72,19 @@ public class ParquetExperimentMonitor(base: File, partition: String, bufferSize:
 
     public fun reportTaskFinished(time: Long, task: TaskState) {
         this.finishedTasks += 1
-        task.host?.let { lastFinishTimePerNode[it] = time }
+        task.host?.let {
+            lastFinishTimePerNode[it] = time
+
+            utilisationWriter.write(
+                UtilisationEvent(
+                    time,
+                    it.name,
+                    ((task.task.image as SimWorkloadImage).workload as SimFlopsWorkload).utilization,
+                    task.startedAt,
+                    time
+                )
+            )
+        }
     }
 
     public fun reportJobStarted(event: WorkflowEvent.JobStarted) {
@@ -115,5 +128,6 @@ public class ParquetExperimentMonitor(base: File, partition: String, bufferSize:
         taskThroughputWriter.close()
         powerConsumptionWriter.close()
         idleTimeWriter.close()
+        utilisationWriter.close()
     }
 }
