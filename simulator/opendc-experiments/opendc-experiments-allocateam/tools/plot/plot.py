@@ -1,16 +1,13 @@
 #!/usr/bin/env python3
 
-from typing import List, Dict
-
 import argparse
 from datetime import datetime
 from pathlib import Path
+from typing import List, Dict
 
 import matplotlib.pyplot as plt
-import seaborn as sns
-
 import pandas as pd
-import matplotlib.ticker as tick
+import seaborn as sns
 
 
 def reformat_large_tick_values(tick_val):
