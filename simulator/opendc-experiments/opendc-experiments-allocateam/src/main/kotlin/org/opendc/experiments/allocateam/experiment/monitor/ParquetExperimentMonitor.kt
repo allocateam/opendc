@@ -107,7 +107,7 @@ public class ParquetExperimentMonitor(base: File, partition: String, bufferSize:
         powerConsumptionWriter.write(
             PowerConsumptionEvent(
                 time,
-                host.uid.toString(),
+                host.name,
                 draw
             )
         )
