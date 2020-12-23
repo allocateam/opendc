@@ -79,7 +79,7 @@ public class StageWorkflowService(
     /**
      * The task queue.
      */
-    internal val taskQueue: Queue<TaskState>
+    public val taskQueue: Queue<TaskState>
 
     /**
      * The active jobs in the system.

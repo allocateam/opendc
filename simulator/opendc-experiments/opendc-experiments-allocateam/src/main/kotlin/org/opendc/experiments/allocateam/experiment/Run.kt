@@ -59,8 +59,12 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
 
         val taskEligibilityPolicy = when (parent.resourceAllocationPolicy) {
             "round-robin" -> RoundRobinPolicy(30)
-            "lottery" -> LotteryPolicy(50)
             else -> NullTaskEligibilityPolicy
+        }
+
+        val taskOrderPolicy = when(parent.resourceAllocationPolicy) {
+            "lottery" -> LotteryPolicy(50)
+            else -> SubmissionTimeTaskOrderPolicy()
         }
 
         val schedulerAsync = testScope.async {
@@ -85,7 +89,7 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
                 taskEligibilityPolicy = taskEligibilityPolicy,
 
                 // Order tasks by their submission time
-                taskOrderPolicy = SubmissionTimeTaskOrderPolicy(),
+                taskOrderPolicy = taskOrderPolicy,
 
                 // Put tasks on resources that can actually run them
                 resourceFilterPolicy = FunctionalResourceFilterPolicy,
