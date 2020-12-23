@@ -14,7 +14,8 @@ public class AllocateamPortfolio(parent: Experiment, id: Int) : Portfolio(parent
 
     override val workloads: List<Workload> = listOf(
         Workload("shell", 1.0),
-        Workload("askalon_ee", 1.0)
+        Workload("askalon_ee", 1.0),
+        Workload("spec_trace-2", 1.0),
     )
 
     override val resourceAllocationPolicies: List<String> = listOf(
@@ -24,5 +25,5 @@ public class AllocateamPortfolio(parent: Experiment, id: Int) : Portfolio(parent
         "lottery"
     )
 
-    override val repetitions: Int = 4
+    override val repetitions: Int = 2
 }
