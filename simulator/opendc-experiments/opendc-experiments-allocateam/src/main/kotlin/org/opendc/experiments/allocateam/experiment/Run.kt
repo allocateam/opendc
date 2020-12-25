@@ -127,6 +127,7 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
 
         try {
             testScope.advanceUntilIdle()
+            testScope.uncaughtExceptions.forEach { it.printStackTrace() }
         } finally {
             monitor.reportRunFinished(clock.millis())
             monitor.close()
