@@ -10,4 +10,5 @@ public class TaskLifecycleEvent(
     public var submissionTime: Long = 0
     public var startTime: Long = 0
     public var finishTime: Long = 0
+    public var serverID: String = ""
 }
