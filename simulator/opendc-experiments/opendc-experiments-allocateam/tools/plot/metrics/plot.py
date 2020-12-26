@@ -68,3 +68,27 @@ class MetricWorkloadBarPlot(Plot):
 
             plt.tight_layout()
             plt.savefig(f'{plotter.OUTPUT_PATH}/{metric.name}/{workload}.png')
+
+class MetricWorkloadViolinPlot(Plot):
+    def generate(self, data, metric, plotter, x_axis_label):
+        plotter._make_output_path(f'{plotter.OUTPUT_PATH}/{metric.name}')
+
+        for workload in data.workload.unique():
+            plt.figure(figsize=(10, 5))
+            g = sns.violinplot(
+                data=data[data.workload == workload],
+                x=metric.name,
+                y="workload",
+                hue="allocation_policy",
+                ci=None,
+            )
+
+            xlabels = [reformat_large_tick_values(x) for x in g.get_xticks()]
+            g.set_xticklabels(xlabels)
+
+            g.set_xlabel(x_axis_label)
+            g.set_ylabel("Workload")
+            plt.legend(title="Allocation policy", bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+
+            plt.tight_layout()
+            plt.savefig(f'{plotter.OUTPUT_PATH}/{metric.name}/{workload}-violin.png')

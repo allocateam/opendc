@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Type
+from typing import Type, List
 from .plot import Plot
 import pandas as pd
 
@@ -16,9 +16,9 @@ def metric_path(name, run):
 
 
 class Metric(ABC):
-    def __init__(self, plot: Type[Plot], runs):
+    def __init__(self, plots: List[Type[Plot]], runs):
         self.name = "metric"
-        self.plot = plot
+        self.plots = plots
         self.runs = runs
         self.x_axis_label = "no label"
 
@@ -35,7 +35,9 @@ class Metric(ABC):
         return pd.DataFrame.from_dict(result)
 
     def generate_plot(self, plotter):
-        self.plot().generate(self.metric_dataframe(), self, plotter, self.x_axis_label)
+        df = self.metric_dataframe()
+        for plot in self.plots:
+            plot().generate(df, self, plotter, self.x_axis_label)
 
     @abstractmethod
     def get_data(self, run):
