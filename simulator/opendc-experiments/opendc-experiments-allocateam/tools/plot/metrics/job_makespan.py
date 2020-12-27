@@ -13,8 +13,8 @@ class JobMakespanMetric(Metric):
         job_df = pd.read_parquet(metric_path("job-lifecycle", run))
         task_df = pd.read_parquet(metric_path("task-lifecycle", run))
 
-        for _, job in job_df.iterrows():
-            tasks = task_df[task_df.job_id == job.job_id]
+        for job_id in job_df.job_id.unique():
+            tasks = task_df[task_df.job_id == job_id]
 
             # job makespan: time elapsed from first-task submission of job until last completion of task from job
             first_task_submission_time = tasks.submission_time.min()

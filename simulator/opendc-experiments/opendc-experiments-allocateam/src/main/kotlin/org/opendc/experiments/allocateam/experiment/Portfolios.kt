@@ -9,7 +9,9 @@ import org.opendc.experiments.sc20.experiment.model.Workload
 
 public class AllocateamPortfolio(parent: Experiment, id: Int) : Portfolio(parent, id, "allocateam") {
     override val topologies: List<Topology> = listOf(
-        Topology("single")
+        Topology("small"),
+        Topology("medium"),
+        Topology("large")
     )
 
     override val workloads: List<Workload> = listOf(

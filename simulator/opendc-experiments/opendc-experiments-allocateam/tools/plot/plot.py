@@ -23,7 +23,7 @@ def iter_runs(experiments):
 
 
 class Plotter:
-    OUTPUT_PATH = f"{Path(__file__).parent.resolve()}/results/{datetime.now():%Y-%m-%d-%H-%m-%d}"
+    OUTPUT_PATH = f"{Path(__file__).parent.resolve()}/results/{datetime.now():%Y-%m-%d-%H-%M-%S}"
 
     def __init__(self,
                  metric_classes: List[Type[Metric]],
@@ -34,9 +34,9 @@ class Plotter:
         self.path = path
 
         self.metrics = self._preprocess(path)
-        self._make_output_path()
+        self.make_output_path()
 
-    def _make_output_path(self, sub_dir=None):
+    def make_output_path(self, sub_dir=None):
         output_path = Path(self.OUTPUT_PATH)
         path = output_path / sub_dir if sub_dir is not None else output_path
         path.mkdir(parents=True, exist_ok=True)
@@ -76,19 +76,22 @@ def main():
     ]
 
     all_metrics = [
-        metrics.JobWaitingTimeMetric,
-        metrics.JobMakespanMetric,
         metrics.JobTurnaroundTimeMetric,
         metrics.TaskThroughputMetric,
         metrics.PowerConsumptionMetric,
-        metrics.IdleTimeMetric
+        metrics.IdleTimeMetric,
+        metrics.JobWaitingTimeMetric,
+        metrics.JobMakespanMetric,
     ]
 
     all_plots = {
         m: plot_types for m in all_metrics
     }
 
-    sns.set(style="darkgrid")
+    sns.set(
+        style="darkgrid",
+        font_scale=1.4
+    )
     plotter = Plotter(all_metrics, all_plots, args.path)
     plotter.plot_all()
 
