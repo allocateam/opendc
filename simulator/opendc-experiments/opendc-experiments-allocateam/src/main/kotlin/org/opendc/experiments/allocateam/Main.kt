@@ -9,7 +9,9 @@ import com.github.ajalt.clikt.parameters.types.choice
 import com.github.ajalt.clikt.parameters.types.file
 import com.github.ajalt.clikt.parameters.types.int
 import mu.KotlinLogging
-import org.opendc.experiments.allocateam.experiment.*
+import org.opendc.experiments.allocateam.experiment.AllocateamPortfolio
+import org.opendc.experiments.allocateam.experiment.Experiment
+import org.opendc.experiments.allocateam.experiment.Portfolio
 import org.opendc.experiments.sc20.reporter.ConsoleExperimentReporter
 import org.opendc.experiments.sc20.runner.ExperimentDescriptor
 import org.opendc.experiments.sc20.runner.execution.ThreadPoolExperimentScheduler

@@ -1,7 +1,7 @@
 package org.opendc.experiments.allocateam.experiment
 
 import org.opendc.experiments.allocateam.telemetry.events.RunCompletedEvent
-import org.opendc.experiments.allocateam.telemetry.writers.ParquetRunCompletedEventWriter
+import org.opendc.experiments.allocateam.telemetry.writers.RunCompletedEventWriter
 import org.opendc.experiments.sc20.runner.ContainerExperimentDescriptor
 import org.opendc.experiments.sc20.runner.ExperimentDescriptor
 import org.opendc.experiments.sc20.runner.execution.ExperimentExecutionContext
@@ -15,28 +15,20 @@ import java.io.File
  * @param traces The path to the traces directory.
  * @param output The output directory.
  */
-public abstract class Experiment(public val traces: File, public val output: File) : ContainerExperimentDescriptor() {
+public abstract class Experiment(
+    public val traces: File,
+    public val output: File
+) : ContainerExperimentDescriptor() {
     override val parent: ExperimentDescriptor? = null
 
-    /**
-     * A collection of runs that were completed along with their acquired metrics.
-     */
-    private val runCompletedEvents: MutableList<RunCompletedEvent> = mutableListOf()
-
-    private val runMetricsWriter = ParquetRunCompletedEventWriter(
-        File(this.output, "metrics.parquet"),
-    )
-
-    private fun writeRunMetrics() {
-        for (runCompletedEvent in this.runCompletedEvents) {
-            runMetricsWriter.write(runCompletedEvent)
-        }
-    }
-
     override suspend fun invoke(context: ExperimentExecutionContext) {
-        runMetricsWriter.use {
+        RunCompletedEventWriter(File(output, "experiments.parquet")).use { writer ->
             val listener = object : ExperimentExecutionListener by context.listener {
                 override fun descriptorRegistered(descriptor: ExperimentDescriptor) {
+                    if (descriptor is Run) {
+                        writer.write(RunCompletedEvent(descriptor, System.currentTimeMillis()))
+                    }
+
                     context.listener.descriptorRegistered(descriptor)
                 }
             }
@@ -46,15 +38,6 @@ public abstract class Experiment(public val traces: File, public val output: Fil
             }
 
             super.invoke(newContext)
-
-            this.writeRunMetrics()
         }
-    }
-
-    /**
-     * Add a [RunCompletedEvent] to the list of [RunCompletedEvent]s.
-     */
-    public fun storeRunCompletedEvent(runCompletedEvent: RunCompletedEvent) {
-        this.runCompletedEvents.add(runCompletedEvent)
     }
 }

@@ -32,6 +32,7 @@ import org.opendc.compute.core.Server
 import org.opendc.compute.core.ServerEvent
 import org.opendc.compute.core.ServerState
 import org.opendc.compute.core.metal.Node
+import org.opendc.compute.core.metal.driver.BareMetalDriver
 import org.opendc.compute.core.metal.service.ProvisioningService
 import org.opendc.utils.flow.EventFlow
 import org.opendc.workflows.service.stage.job.JobAdmissionPolicy
@@ -209,6 +210,7 @@ public class StageWorkflowService(
         instances.values.toCollection(jobInstance.tasks)
         incomingJobs += jobInstance
         rootListener.jobSubmitted(jobInstance)
+        eventFlow.emit(WorkflowEvent.JobSubmitted(this, jobInstance, clock.millis()))
 
         requestCycle()
     }
@@ -258,6 +260,7 @@ public class StageWorkflowService(
                 }
 
                 incomingTasks += task
+                eventFlow.emit(WorkflowEvent.TaskSubmitted(this, jobInstance.job, task, clock.millis()))
                 rootListener.taskReady(task)
             }
         }
@@ -313,7 +316,7 @@ public class StageWorkflowService(
                     WorkflowEvent.TaskStarted(
                         this@StageWorkflowService,
                         task.job.job,
-                        task.task,
+                        task,
                         clock.millis()
                     )
                 )
@@ -331,7 +334,7 @@ public class StageWorkflowService(
                     WorkflowEvent.TaskFinished(
                         this@StageWorkflowService,
                         task.job.job,
-                        task.task,
+                        task,
                         clock.millis()
                     )
                 )

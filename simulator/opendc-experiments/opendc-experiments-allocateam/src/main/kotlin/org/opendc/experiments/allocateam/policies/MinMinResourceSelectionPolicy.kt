@@ -6,7 +6,6 @@ import org.opendc.simulator.compute.workload.SimFlopsWorkload
 import org.opendc.workflows.service.StageWorkflowService
 import org.opendc.workflows.service.TaskState
 import org.opendc.workflows.service.stage.resource.ResourceSelectionPolicy
-import java.util.*
 
 public class MinMinResourceSelectionPolicy(public val flopsPerCore: Long) : ResourceSelectionPolicy {
     override fun invoke(scheduler: StageWorkflowService): (List<Node>, TaskState) -> Node? {

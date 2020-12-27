@@ -53,7 +53,7 @@ public data class LotteryPolicy(public val lotteryRounds: Int) : TaskEligibility
             }
 
             override fun cycleStarted(scheduler: StageWorkflowService) {
-                logger.info("Cycle ${++numCycles} started")
+//                logger.info("Cycle ${++numCycles} started")
             }
 
             fun rand(start: Int, end: Int): Int {
@@ -62,11 +62,11 @@ public data class LotteryPolicy(public val lotteryRounds: Int) : TaskEligibility
             }
 
             override fun jobStarted(job: JobState) {
-                logger.info("Job started: ${job.job.uid} number of jobs started: ${++numJobsStarted}")
+//                logger.info("Job started: ${job.job.uid} number of jobs started: ${++numJobsStarted}")
             }
 
             override fun jobFinished(job: JobState) {
-                logger.info("Job finished: ${job.job.uid} number of jobs finished: ${++numJobsFinished}")
+//                logger.info("Job finished: ${job.job.uid} number of jobs finished: ${++numJobsFinished}")
             }
 
             override fun taskReady(task: TaskState) {
@@ -99,5 +99,5 @@ public data class LotteryPolicy(public val lotteryRounds: Int) : TaskEligibility
             }
         }
 
-    override fun toString(): String = "Round-Robin-Quanta-($lotteryRounds)"
+    override fun toString(): String = "Lottery-($lotteryRounds)"
 }

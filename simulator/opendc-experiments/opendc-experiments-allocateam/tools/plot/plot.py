@@ -1,99 +1,97 @@
-import matplotlib.pyplot as plt; plt.rcdefaults()
+#!/usr/bin/env python3
+
 import argparse
-import os
 from datetime import datetime
 from pathlib import Path
+from typing import List, Dict, Type
 
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
-import matplotlib.ticker as tick
+import seaborn as sns
 
-def reformat_large_tick_values(tick_val, pos):
-    """
-    Turns large tick values (in the billions, millions and thousands) such as 4500 into 4.5K and also appropriately turns 4000 into 4K (no zero after the decimal).
-    """
-    if tick_val >= 1000000000:
-        val = round(tick_val/1000000000, 1)
-        new_tick_format = '{:}B'.format(val)
-    elif tick_val >= 1000000:
-        val = round(tick_val/1000000, 1)
-        new_tick_format = '{:}M'.format(val)
-    elif tick_val >= 1000:
-        val = round(tick_val/1000, 1)
-        new_tick_format = '{:}K'.format(val)
-    elif tick_val < 1000:
-        new_tick_format = round(tick_val, 1)
-    else:
-        new_tick_format = tick_val
+from metrics import Metric, Plot
+import metrics
 
-    # make new_tick_format into a string value
-    new_tick_format = str(new_tick_format)
 
-    # code below will keep 4.5M as is but change values such as 4.0M to 4M since that zero after the decimal isn't needed
-    index_of_decimal = new_tick_format.find(".")
+def iter_runs(experiments):
+    for portfolio_id in experiments['portfolio_id'].unique():
+        for scenario_id in experiments['scenario_id'].unique():
+            p_id = experiments['portfolio_id'] == portfolio_id
+            s_id = experiments['scenario_id'] == scenario_id
+            for _, run in experiments[p_id & s_id].iterrows():
+                yield run
 
-    if index_of_decimal != -1:
-        value_after_decimal = new_tick_format[index_of_decimal+1]
-        if value_after_decimal == "0":
-            # remove the 0 after the decimal point since it's not needed
-            new_tick_format = new_tick_format[0:index_of_decimal] + new_tick_format[index_of_decimal+2:]
 
-    return new_tick_format
+class Plotter:
+    OUTPUT_PATH = f"{Path(__file__).parent.resolve()}/results/{datetime.now():%Y-%m-%d-%H-%m-%d}"
 
-class Plotter():
-    OUTPUT_PATH = f"{Path(__file__).parent.resolve()}/{datetime.now()}"
+    def __init__(self,
+                 metric_classes: List[Type[Metric]],
+                 plot_classes: Dict[Type[Metric], List[Type[Plot]]],
+                 path: Path):
+        self.metric_classes = metric_classes
+        self.plot_classes = plot_classes
+        self.path = path
 
-    def __init__(self, path: str):
-        self.raw_data = pd.read_parquet(path)
-        self.data = self._preprocess(self.raw_data)
+        self.metrics = self._preprocess(path)
         self._make_output_path()
 
-    def _make_output_path(self):
-        Path(self.OUTPUT_PATH).mkdir(parents=True, exist_ok=True)
+    def _make_output_path(self, sub_dir=None):
+        output_path = Path(self.OUTPUT_PATH)
+        path = output_path / sub_dir if sub_dir is not None else output_path
+        path.mkdir(parents=True, exist_ok=True)
 
-    def _preprocess(self, data):
-        data = data.copy()
-        # ToDo: take the mean of all scenario repetitions.
-        return data[data['run_id'] == 0]
+    def _preprocess(self, path: Path) -> List[Metric]:
+        experiments = pd.read_parquet(path / "experiments.parquet")
+        return [
+            metric(self.plot_classes[metric], iter_runs(experiments))
+            for metric in self.metric_classes
+        ]
 
     def plot_all(self):
         print("Plotting..")
-        self._plot_column('task_throughput', unit="tasks per second")
-        self._plot_column('turnaround_time', unit="time")
+        for metric in self.metrics:
+            metric.generate_plot(self)
+            print(f"✅ {metric.name}")
+
         print(f"Plots successfully stored in {self.OUTPUT_PATH}")
-
-    def _plot_column(self, column: str, unit: str = None):
-        self.data.plot.barh(x='allocation_policy', y=column)
-        plt.ylabel("Allocation policy")
-        plt.xlabel(unit)
-
-        # Set large number formatting to K for thousands and B for billions
-        ax = plt.gca()
-        ax.xaxis.set_major_formatter(tick.FuncFormatter(reformat_large_tick_values))
-
-        output_file_path = f'{self.OUTPUT_PATH}/{column}.png'
-        plt.savefig(output_file_path)
 
 
 def main():
-    """Usage: python3 plot.py <path_to_csv>
-    See example.csv for an example of the input data.
-    """
+    """Usage: python3 plot.py <path_to_data_dir>"""
 
-    default_metrics_location = Path(__file__).parent / "../../data/metrics.parquet"
     parser = argparse.ArgumentParser(description="Plot metrics for the Allocateam experiment.")
     parser.add_argument(
         "path",
         nargs='?',
         type=str,
         help="The path to the input csv file.",
-        default=default_metrics_location.resolve(),
+        default=metrics.metric.BASE_DATA_PATH,
     )
     args = parser.parse_args()
 
-    plotter = Plotter(args.path)
+    plot_types = [
+        metrics.plot.MetricWorkloadBarPlot,
+        metrics.plot.MetricWorkloadViolinPlot
+    ]
+
+    all_metrics = [
+        metrics.JobWaitingTimeMetric,
+        metrics.JobMakespanMetric,
+        metrics.JobTurnaroundTimeMetric,
+        metrics.TaskThroughputMetric,
+        metrics.PowerConsumptionMetric,
+        metrics.IdleTimeMetric
+    ]
+
+    all_plots = {
+        m: plot_types for m in all_metrics
+    }
+
+    sns.set(style="darkgrid")
+    plotter = Plotter(all_metrics, all_plots, args.path)
     plotter.plot_all()
+
 
 if __name__ == "__main__":
     main()
