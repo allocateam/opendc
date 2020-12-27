@@ -1,28 +1,5 @@
-/*
- * Copyright (c) 2020 AtLarge Research
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
-
 package org.opendc.experiments.allocateam.policies
 
-import mu.KotlinLogging
 import org.opendc.workflows.service.JobState
 import org.opendc.workflows.service.StageWorkflowSchedulerListener
 import org.opendc.workflows.service.StageWorkflowService
@@ -30,8 +7,6 @@ import org.opendc.workflows.service.TaskState
 import org.opendc.workflows.service.stage.task.TaskEligibilityPolicy
 import org.opendc.workflows.workload.Task
 import java.util.*
-
-private val logger = KotlinLogging.logger {}
 
 
 /**
@@ -53,13 +28,13 @@ public data class RoundRobinPolicy(public val quanta: Int) : TaskEligibilityPoli
             }
 
             override fun jobStarted(job: JobState) {
-//                logger.info("Job started: ${job.job.uid} number of jobs started: ${++numJobsStarted}")
+                // logger.info("Job started: ${job.job.uid} number of jobs started: ${++numJobsStarted}")
                 val queuedJob = QueuedJob(job.job.uid, mutableSetOf(), 0)
                 activeQueue.add(queuedJob)
             }
 
             override fun jobFinished(job: JobState) {
-//                logger.info("Job finished: ${job.job.uid} number of jobs finished: ${++numJobsFinished}")
+                // logger.info("Job finished: ${job.job.uid} number of jobs finished: ${++numJobsFinished}")
             }
 
             override fun taskReady(task: TaskState) {
@@ -77,7 +52,7 @@ public data class RoundRobinPolicy(public val quanta: Int) : TaskEligibilityPoli
                 // If we already scheduled a quanta amount during this batch, we stop scheduling any more tasks for this
                 // batch
                 if(numScheduledSoFar + 1 > quanta) {
-//                    logger.info("Quanta of $quanta exceeded")
+                    // logger.info("Quanta of $quanta exceeded")
                     numScheduledSoFar = 0
                     return TaskEligibilityPolicy.Advice.STOP
                 }
@@ -118,7 +93,7 @@ public data class RoundRobinPolicy(public val quanta: Int) : TaskEligibilityPoli
                 }
 
                 numScheduledSoFar++
-//                logger.info("Scheduling job: ${task.job.job.uid}, task: ${task.task.uid}")
+                // logger.info("Scheduling job: ${task.job.job.uid}, task: ${task.task.uid}")
                 return TaskEligibilityPolicy.Advice.ADMIT
             }
         }
