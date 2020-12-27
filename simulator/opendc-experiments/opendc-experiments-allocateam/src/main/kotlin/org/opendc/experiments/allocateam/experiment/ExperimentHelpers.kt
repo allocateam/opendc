@@ -32,18 +32,25 @@ public suspend fun attachMonitor(
         .onEach { event ->
             val time = clock.millis()
             when (event) {
+                is WorkflowEvent.JobSubmitted -> {
+                    monitor.reportJobSubmitted(time, event)
+                }
+
                 is WorkflowEvent.JobStarted -> {
-                    monitor.reportJobStarted(event)
+                    monitor.reportJobStarted(time, event)
                 }
 
                 is WorkflowEvent.JobFinished -> {
-                    monitor.reportJobFinished(clock.millis(), event)
+                    monitor.reportJobFinished(time, event)
+                }
+
+                is WorkflowEvent.TaskSubmitted -> {
+                    monitor.reportTaskSubmitted(time, event)
                 }
 
                 is WorkflowEvent.TaskStarted -> {
                     monitor.reportTaskStarted(time, event.task)
                 }
-
                 is WorkflowEvent.TaskFinished -> {
                     monitor.reportTaskFinished(time, event.task)
                 }

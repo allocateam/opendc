@@ -23,7 +23,6 @@
 package org.opendc.workflows.service
 
 import org.opendc.workflows.workload.Job
-import org.opendc.workflows.workload.Task
 
 /**
  * An event emitted by the [WorkflowService].
@@ -33,6 +32,15 @@ public sealed class WorkflowEvent {
      * The [WorkflowService] that emitted the event.
      */
     public abstract val service: WorkflowService
+
+    /**
+     * This event is emitted when a job has been submitted to the scheduler.
+     */
+    public data class JobSubmitted(
+        override val service: WorkflowService,
+        public val jobState: JobState,
+        public val time: Long
+    ) : WorkflowEvent()
 
     /**
      * This event is emitted when a job has become active.
@@ -49,6 +57,16 @@ public sealed class WorkflowEvent {
     public data class JobFinished(
         override val service: WorkflowService,
         public val job: Job,
+        public val time: Long
+    ) : WorkflowEvent()
+
+    /**
+     * This event is emitted when a task of a job has been submitted for execution.
+     */
+    public data class TaskSubmitted(
+        override val service: WorkflowService,
+        public val job: Job,
+        public val task: TaskState,
         public val time: Long
     ) : WorkflowEvent()
 
