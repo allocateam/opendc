@@ -27,6 +27,7 @@ class Metric(ABC):
         for run in self.runs:
             for value in self.get_data(run):
                 result.append({
+                    "portfolio_id": run.portfolio_id,
                     "topology": run.topology,
                     "workload": run.workload_name,
                     "allocation_policy": run.allocation_policy,

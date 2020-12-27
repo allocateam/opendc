@@ -1,10 +1,12 @@
 from abc import ABC, abstractmethod
 
 import matplotlib.pyplot as plt
-import matplotlib.ticker as mticker
-import seaborn as sns
 import pandas as pd
+import seaborn as sns
 
+# HACK(gm): ignore warnings by matplotlib regarding FixedFormatter for ticks
+import warnings
+warnings.filterwarnings("ignore")
 
 def reformat_large_tick_values(tick_val):
     """
@@ -45,50 +47,46 @@ class Plot(ABC):
         pass
 
 
-class MetricWorkloadBarPlot(Plot):
+class MetricWorkloadPlot(Plot):
+    def __init__(self):
+        self.method = None
+        self.postfix_path = ""
+
     def generate(self, data, metric, plotter, x_axis_label):
-        plotter._make_output_path(f'{plotter.OUTPUT_PATH}/{metric.name}')
+        for topology in data.topology.unique():
+            dir_path = f'{plotter.OUTPUT_PATH}/{metric.name}/topology-{topology}'
+            plotter.make_output_path(dir_path)
 
-        for workload in data.workload.unique():
-            plt.figure(figsize=(10, 5))
-            g = sns.barplot(
-                data=data[data.workload == workload],
-                x=metric.name,
-                y="workload",
-                hue="allocation_policy",
-                ci=None,
-            )
+            for workload in data.workload.unique():
+                plt.figure(figsize=(10, 5))
+                g = self.method(
+                    data=data[(data.workload == workload) & (data.topology == topology)],
+                    x=metric.name,
+                    y="workload",
+                    hue="allocation_policy",
+                    ci=None,
+                )
 
-            xlabels = [reformat_large_tick_values(x) for x in g.get_xticks()]
-            g.set_xticklabels(xlabels)
+                xlabels = [reformat_large_tick_values(x) for x in g.get_xticks()]
+                g.set_xticklabels(xlabels)
 
-            g.set_xlabel(x_axis_label)
-            g.set_ylabel("Workload")
-            plt.legend(title="Allocation policy", bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+                g.set_xlabel(x_axis_label)
+                g.set_ylabel("Workload")
+                plt.legend(title="Allocation policy", bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
 
-            plt.tight_layout()
-            plt.savefig(f'{plotter.OUTPUT_PATH}/{metric.name}/{workload}.png')
+                plt.tight_layout()
+                postfix = f"-{self.postfix_path}" if self.postfix_path else ""
+                plt.savefig(f'{dir_path}/{workload}{postfix}.png')
 
-class MetricWorkloadViolinPlot(Plot):
-    def generate(self, data, metric, plotter, x_axis_label):
-        plotter._make_output_path(f'{plotter.OUTPUT_PATH}/{metric.name}')
 
-        for workload in data.workload.unique():
-            plt.figure(figsize=(10, 5))
-            g = sns.violinplot(
-                data=data[data.workload == workload],
-                x=metric.name,
-                y="workload",
-                hue="allocation_policy",
-                ci=None,
-            )
+class MetricWorkloadBarPlot(MetricWorkloadPlot):
+    def __init__(self):
+        super().__init__()
+        self.method = sns.barplot
 
-            xlabels = [reformat_large_tick_values(x) for x in g.get_xticks()]
-            g.set_xticklabels(xlabels)
 
-            g.set_xlabel(x_axis_label)
-            g.set_ylabel("Workload")
-            plt.legend(title="Allocation policy", bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
-
-            plt.tight_layout()
-            plt.savefig(f'{plotter.OUTPUT_PATH}/{metric.name}/{workload}-violin.png')
+class MetricWorkloadViolinPlot(MetricWorkloadPlot):
+    def __init__(self):
+        super().__init__()
+        self.method = sns.violinplot
+        self.postfix_path = "violin"
