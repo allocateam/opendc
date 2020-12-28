@@ -210,6 +210,7 @@ public class StageWorkflowService(
         instances.values.toCollection(jobInstance.tasks)
         incomingJobs += jobInstance
         rootListener.jobSubmitted(jobInstance)
+        eventFlow.emit(WorkflowEvent.JobSubmitted(this, jobInstance, clock.millis()))
 
         requestCycle()
     }
@@ -259,6 +260,7 @@ public class StageWorkflowService(
                 }
 
                 incomingTasks += task
+                eventFlow.emit(WorkflowEvent.TaskSubmitted(this, jobInstance.job, task, clock.millis()))
                 rootListener.taskReady(task)
             }
         }
