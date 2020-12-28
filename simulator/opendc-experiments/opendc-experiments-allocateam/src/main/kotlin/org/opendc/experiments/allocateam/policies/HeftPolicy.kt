@@ -146,14 +146,12 @@ public class HeftPolicy : ResourceSelectionPolicy {
                         taskRanks[task] = rank
                     }
                     scheduleTasks(job, taskRanks)
-                    logger.info("Job ${job.job.uid} started, Num jobs started: ${++jobsStarted}")
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
             }
 
             override fun jobFinished(job: JobState) {
-                logger.info("Job ${job.job.uid} finished, Num jobs finished: ${++jobsFinished}")
                 heftOrdersJobs.remove(job)
                 heftJobsOn.remove(job)
             }
