@@ -118,6 +118,7 @@ class AllocateamIntegrationTest {
                     UUID.randomUUID(),
                     "<unnamed>",
                     SimWorkloadImage(UUID.randomUUID(), "<unnamed>", emptyMap(), SimFlopsWorkload(flops, cores)),
+                    runtime,
                     HashSet(),
                     mapOf(WORKFLOW_TASK_DEADLINE to runtime)
                 )
