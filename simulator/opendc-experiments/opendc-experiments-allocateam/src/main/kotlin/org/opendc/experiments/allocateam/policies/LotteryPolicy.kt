@@ -22,12 +22,9 @@
 
 package org.opendc.experiments.allocateam.policies
 
-import mu.KotlinLogging
-import org.opendc.workflows.service.JobState
 import org.opendc.workflows.service.StageWorkflowSchedulerListener
 import org.opendc.workflows.service.StageWorkflowService
 import org.opendc.workflows.service.TaskState
-import org.opendc.workflows.service.stage.task.TaskEligibilityPolicy
 import org.opendc.workflows.service.stage.task.TaskOrderPolicy
 import org.opendc.workflows.workload.Task
 import java.util.*
@@ -35,12 +32,6 @@ import kotlin.collections.HashMap
 import kotlin.random.Random
 
 
-private val logger = KotlinLogging.logger {}
-
-
-/**
- * A [TaskEligibilityPolicy] that limits the number of active tasks of a job in the system.
- */
 public data class LotteryPolicy(public val lotteryRounds: Int) : TaskOrderPolicy {
 
     override fun invoke(scheduler: StageWorkflowService): Comparator<TaskState> =
@@ -84,7 +75,5 @@ public data class LotteryPolicy(public val lotteryRounds: Int) : TaskOrderPolicy
             }
         }
 
-    override fun toString(): String {
-        return "Lottery Policy"
-    }
+    override fun toString(): String = "Lottery Policy"
 }

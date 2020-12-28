@@ -6,11 +6,17 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestCoroutineScope
 import mu.KotlinLogging
+import org.opendc.compute.core.metal.Node
 import org.opendc.compute.core.metal.service.ProvisioningService
 import org.opendc.compute.core.metal.service.SimpleProvisioningService
 import org.opendc.experiments.allocateam.environment.AllocateamEnvironmentReader
 import org.opendc.experiments.allocateam.experiment.monitor.ParquetExperimentMonitor
-import org.opendc.experiments.allocateam.policies.*
+import org.opendc.experiments.allocateam.policies.LotteryPolicy
+import org.opendc.experiments.allocateam.policies.MaxMinResourceSelectionPolicy
+import org.opendc.experiments.allocateam.policies.MinMinResourceSelectionPolicy
+import org.opendc.experiments.allocateam.policies.RoundRobinPolicy
+import org.opendc.experiments.allocateam.policies.elop.ELOPJobAdmissionPolicy
+import org.opendc.experiments.allocateam.policies.elop.ELOPResourceSelectionPolicy
 import org.opendc.experiments.allocateam.policies.heft.HeftPolicyState
 import org.opendc.experiments.allocateam.policies.heft.HeftResourceSelectionPolicy
 import org.opendc.experiments.allocateam.policies.heft.HeftTaskOrderPolicy
@@ -18,6 +24,7 @@ import org.opendc.experiments.sc20.runner.TrialExperimentDescriptor
 import org.opendc.experiments.sc20.runner.execution.ExperimentExecutionContext
 import org.opendc.format.trace.wtf.WtfTraceReader
 import org.opendc.simulator.utils.DelayControllerClockAdapter
+import org.opendc.workflows.service.JobState
 import org.opendc.workflows.service.StageWorkflowService
 import org.opendc.workflows.service.WorkflowSchedulerMode
 import org.opendc.workflows.service.stage.job.NullJobAdmissionPolicy
@@ -46,27 +53,9 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
 
         val flopsPerCore = 1105000000000  // based on FLOPS of i7 6700k per core
 
+        val elopReservedNodes: MutableMap<JobState, MutableList<Node>> = mutableMapOf()
+
         val heftPolicyState = HeftPolicyState()
-
-        val resourceSelectionPolicy = when (parent.allocationPolicy) {
-            "min-min" -> MinMinResourceSelectionPolicy(flopsPerCore)
-            "max-min" -> MaxMinResourceSelectionPolicy(flopsPerCore)
-            "heft" -> HeftResourceSelectionPolicy(heftPolicyState)
-            "round-robin" -> FirstFitResourceSelectionPolicy
-            "lottery" -> FirstFitResourceSelectionPolicy
-            else -> throw IllegalArgumentException("Unknown policy ${parent.allocationPolicy}")
-        }
-
-        val taskEligibilityPolicy = when (parent.allocationPolicy) {
-            "round-robin" -> RoundRobinPolicy(30)
-            else -> NullTaskEligibilityPolicy
-        }
-
-        val taskOrderPolicy = when(parent.allocationPolicy) {
-            "lottery" -> LotteryPolicy(50)
-            "heft" -> HeftTaskOrderPolicy(heftPolicyState)
-            else -> SubmissionTimeTaskOrderPolicy()
-        }
 
         val monitor = ParquetExperimentMonitor(
             parent.parent.parent.output,
@@ -89,22 +78,40 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
                 mode = WorkflowSchedulerMode.Batch(100),
 
                 // Admit all jobs
-                jobAdmissionPolicy = NullJobAdmissionPolicy,
+                jobAdmissionPolicy = when (parent.allocationPolicy) {
+                    "elop" -> ELOPJobAdmissionPolicy(elopReservedNodes)
+                    else -> NullJobAdmissionPolicy
+                },
 
                 // Order jobs by their submission time
                 jobOrderPolicy = SubmissionTimeJobOrderPolicy(),
 
                 // All tasks are eligible to be scheduled
-                taskEligibilityPolicy = taskEligibilityPolicy,
+                taskEligibilityPolicy = when (parent.allocationPolicy) {
+                    "round-robin" -> RoundRobinPolicy(30)
+                    else -> NullTaskEligibilityPolicy
+                },
 
                 // Order tasks by their submission time
-                taskOrderPolicy = taskOrderPolicy,
+                taskOrderPolicy = when (parent.allocationPolicy) {
+                    "lottery" -> LotteryPolicy(50)
+                    "heft" -> HeftTaskOrderPolicy(heftPolicyState)
+                    else -> SubmissionTimeTaskOrderPolicy()
+                },
 
                 // Put tasks on resources that can actually run them
                 resourceFilterPolicy = FunctionalResourceFilterPolicy,
 
                 // Actual allocation policy (select the resource on which to place the task)
-                resourceSelectionPolicy = resourceSelectionPolicy,
+                resourceSelectionPolicy = when (parent.allocationPolicy) {
+                    "min-min" -> MinMinResourceSelectionPolicy(flopsPerCore)
+                    "max-min" -> MaxMinResourceSelectionPolicy(flopsPerCore)
+                    "round-robin" -> FirstFitResourceSelectionPolicy
+                    "lottery" -> FirstFitResourceSelectionPolicy
+                    "heft" -> HeftResourceSelectionPolicy(heftPolicyState)
+                    "elop" -> ELOPResourceSelectionPolicy(elopReservedNodes)
+                    else -> throw IllegalArgumentException("Unknown policy ${parent.allocationPolicy}")
+                },
             )
         }
 
@@ -128,6 +135,7 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
             monitor.reportRunStarted(clock.millis())
             while (reader.hasNext()) {
                 val (time, job) = reader.next()
+
                 delay(max(0, time * 1000 - clock.millis()))
                 scheduler.submit(job)
             }

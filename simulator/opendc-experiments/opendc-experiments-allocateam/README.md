@@ -70,3 +70,10 @@ Create a JSON:
 ```shell script
 parquet-tools cat --json data/experiments.parquet > ./data/experiments.json
 ```
+
+## Running tests
+
+```bash
+# Inside opendc/simulator/opendc-experiments/opendc-experiments-allocateam
+../../gradlew clean test
+```

@@ -85,7 +85,7 @@ public class StageWorkflowService(
     /**
      * The active jobs in the system.
      */
-    internal val activeJobs: MutableSet<JobState> = mutableSetOf()
+    public val activeJobs: MutableSet<JobState> = mutableSetOf()
 
     /**
      * The active tasks in the system.
@@ -105,7 +105,7 @@ public class StageWorkflowService(
     /**
      * The available nodes.
      */
-    internal val available: MutableSet<Node> = mutableSetOf()
+    public val available: MutableSet<Node> = mutableSetOf()
 
     /**
      * The maximum number of incoming jobs.
@@ -176,6 +176,7 @@ public class StageWorkflowService(
             nodes = provisioningService.nodes().toList()
             available.addAll(nodes)
         }
+
 
         this.mode = mode(this)
         this.jobAdmissionPolicy = jobAdmissionPolicy(this)

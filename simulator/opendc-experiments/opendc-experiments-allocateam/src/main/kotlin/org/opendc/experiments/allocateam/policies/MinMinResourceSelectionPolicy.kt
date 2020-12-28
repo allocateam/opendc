@@ -31,5 +31,4 @@ public class MinMinResourceSelectionPolicy(public val flopsPerCore: Long) : Reso
     }
 
     override fun toString(): String = "MinMin"
-
 }

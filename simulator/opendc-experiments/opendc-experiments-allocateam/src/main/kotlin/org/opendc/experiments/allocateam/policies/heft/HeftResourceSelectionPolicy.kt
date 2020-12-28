@@ -7,7 +7,6 @@ import org.opendc.workflows.service.StageWorkflowSchedulerListener
 import org.opendc.workflows.service.StageWorkflowService
 import org.opendc.workflows.service.TaskState
 import org.opendc.workflows.service.stage.resource.ResourceSelectionPolicy
-import org.opendc.workflows.service.stage.task.TaskEligibilityPolicy
 
 
 private val logger = KotlinLogging.logger {}
