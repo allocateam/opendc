@@ -43,18 +43,12 @@ class AllocateamIntegrationTest {
     private lateinit var clock: Clock
 
     /**
-     * The monitor used to keep track of the metrics.
-     */
-//    private lateinit var monitor: TestExperimentReporter
-
-    /**
      * Setup the experimental environment.
      */
     @BeforeEach
     fun setUp() {
         testScope = TestCoroutineScope()
         clock = DelayControllerClockAdapter(testScope)
-//        monitor = RunMonitor(this, clock)
     }
 
     /**
@@ -64,7 +58,7 @@ class AllocateamIntegrationTest {
     fun tearDown() = testScope.cleanupTestCoroutines()
 
     @Test
-    fun testELOP() {
+    fun testELOPShouldFinishAllJobs() {
         val schedulerAsync = testScope.async {
             // Environment file describing topology can be found in the resources of this project
             val resourcesFile = File("/env/", "single.json").absolutePath
@@ -89,7 +83,11 @@ class AllocateamIntegrationTest {
         testScope.launch {
             val scheduler = schedulerAsync.await()
 
-            val jobs = listOf(createJob(), createJob(), createJob())
+            val jobs = mutableListOf<Job>()
+
+            for (i in 1..1000) {
+                jobs.add(createJob())
+            }
 
             for (job in jobs) {
                 scheduler.submit(job)
@@ -97,9 +95,18 @@ class AllocateamIntegrationTest {
         }
         try {
             testScope.advanceUntilIdle()
-        } finally { }
+        } finally {
+        }
     }
 
+    /**
+     * Creates a Job/DAG with the following graph:
+     *     2
+     *   /  \
+     * 1     4
+     *  \   /
+     *    3
+     */
     private fun createJob(): Job {
         fun createTasks(numberOfTasks: Int): MutableMap<Int, Task> {
             val tasks = mutableMapOf<Int, Task>()
@@ -144,18 +151,6 @@ class AllocateamIntegrationTest {
         tasks = setDependencies(tasks, taskDependencies)
         return Job(UUID.randomUUID(), "<unnamed>", UnnamedUser, tasks.values.toSet())
     }
-
-    @Test
-    fun testLopCalculator() {
-
-//        val taskState = TaskState(jobInstance, tasks[1]!!)
-//
-//        val lopCalculator = LevelOfParallelismCalculator()
-//        println(lopCalculator.calculateLOP(taskState))
-//        assert(lopCalculator.calculateLOP(taskState) == 2)
-    }
-
-
 }
 
 /**

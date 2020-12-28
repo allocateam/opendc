@@ -189,7 +189,6 @@ public class StageWorkflowService(
     override val events: Flow<WorkflowEvent> = eventFlow
 
     override suspend fun submit(job: Job) {
-        println("Job being submitted: $job")
         // J1 Incoming Jobs
         val jobInstance = JobState(job, clock.millis())
         val instances = job.tasks.associateWith {
@@ -225,7 +224,6 @@ public class StageWorkflowService(
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     internal suspend fun schedule() {
-        println("Scheduling..")
         // J2 Create list of eligible jobs
         rootListener.cycleStarted(this)
         val iterator = incomingJobs.iterator()
@@ -244,7 +242,6 @@ public class StageWorkflowService(
             eventFlow.emit(WorkflowEvent.JobStarted(this, jobInstance, clock.millis()))
             rootListener.jobStarted(jobInstance)
         }
-        println("jobQueue: $jobQueue")
 
         // J4 Per job
         while (jobQueue.isNotEmpty()) {
@@ -281,26 +278,12 @@ public class StageWorkflowService(
             taskQueue.add(taskInstance)
         }
 
-        fun printTaskQueue() {
-            println("Printing taskQueue:")
-            for (task in taskQueue) {
-                println("jobId: ${task.job.job.uid}")
-                println("taskId: ${task.task.uid}")
-                println("taskDeps:")
-                for (task in task.task.dependencies) {
-                    println("\t${task.uid}")
-                }
-            }
-        }
-        printTaskQueue()
-
         // T3 Per task
         while (taskQueue.isNotEmpty()) {
             val instance = taskQueue.peek()
             val host: Node? = resourceSelectionPolicy(available.toList(), instance)
 
             if (host != null) {
-                println("submitting task ${instance.task.uid} to machine ${host.uid}")
                 // T4 Submit task to machine
                 available -= host
                 instance.state = TaskStatus.ACTIVE
@@ -376,7 +359,6 @@ public class StageWorkflowService(
     }
 
     private suspend fun finishJob(job: JobState) {
-        println("Job ${job.job.uid} finished")
         activeJobs -= job
         eventFlow.emit(WorkflowEvent.JobFinished(this, job.job, clock.millis()))
         rootListener.jobFinished(job)

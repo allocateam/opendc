@@ -24,7 +24,6 @@ import org.opendc.workflows.service.stage.resource.FirstFitResourceSelectionPoli
 import org.opendc.workflows.service.stage.resource.FunctionalResourceFilterPolicy
 import org.opendc.workflows.service.stage.task.NullTaskEligibilityPolicy
 import org.opendc.workflows.service.stage.task.SubmissionTimeTaskOrderPolicy
-import org.opendc.workflows.workload.Job
 import java.io.File
 import kotlin.math.max
 
@@ -116,33 +115,17 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
 
         this.runStatus = RunStatus.RUNNING
 
-        fun print_job(job: Job) {
-            println("job.name:" + job.uid)
-            println("tasks:")
-            for (task in job.tasks) {
-                println("\ttask.name:" + task.uid)
-//                println("\ttask.dependencies:" + task.dependencies)
-            }
-        }
 
         testScope.launch {
             val tracePath = File(experiment.traces.absolutePath, parent.workload.name).absolutePath
             val reader = WtfTraceReader(tracePath)
             val scheduler = schedulerAsync.await()
-            var i = 0
-            val LIMIT = 3
+
             while (reader.hasNext()) {
-                if (i == LIMIT) {
-                    println("BREAKING!")
-                    break
-                }
                 val (time, job) = reader.next()
-                println("\nPRINTING JOB!")
-                print_job(job)
 
                 delay(max(0, time * 1000 - clock.millis()))
                 scheduler.submit(job)
-                i++
             }
         }
 
