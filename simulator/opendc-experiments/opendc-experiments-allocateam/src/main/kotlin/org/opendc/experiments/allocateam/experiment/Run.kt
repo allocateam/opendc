@@ -10,10 +10,7 @@ import org.opendc.compute.core.metal.service.ProvisioningService
 import org.opendc.compute.core.metal.service.SimpleProvisioningService
 import org.opendc.experiments.allocateam.environment.AllocateamEnvironmentReader
 import org.opendc.experiments.allocateam.experiment.monitor.ParquetExperimentMonitor
-import org.opendc.experiments.allocateam.policies.LotteryPolicy
-import org.opendc.experiments.allocateam.policies.MaxMinResourceSelectionPolicy
-import org.opendc.experiments.allocateam.policies.MinMinResourceSelectionPolicy
-import org.opendc.experiments.allocateam.policies.RoundRobinPolicy
+import org.opendc.experiments.allocateam.policies.*
 import org.opendc.experiments.sc20.runner.TrialExperimentDescriptor
 import org.opendc.experiments.sc20.runner.execution.ExperimentExecutionContext
 import org.opendc.format.trace.wtf.WtfTraceReader
@@ -49,6 +46,7 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
         val resourceSelectionPolicy = when (parent.allocationPolicy) {
             "min-min" -> MinMinResourceSelectionPolicy(flopsPerCore)
             "max-min" -> MaxMinResourceSelectionPolicy(flopsPerCore)
+            "heft" -> HeftPolicy()
             "round-robin" -> FirstFitResourceSelectionPolicy
             "lottery" -> FirstFitResourceSelectionPolicy
             else -> throw IllegalArgumentException("Unknown policy ${parent.allocationPolicy}")

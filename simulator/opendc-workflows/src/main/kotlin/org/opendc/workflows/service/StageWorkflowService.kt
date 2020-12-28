@@ -100,7 +100,7 @@ public class StageWorkflowService(
     /**
      * The nodes that are controlled by the service.
      */
-    internal lateinit var nodes: List<Node>
+    public lateinit var nodes: List<Node>
 
     /**
      * The available nodes.

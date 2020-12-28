@@ -41,6 +41,7 @@ public data class Task(
     override val uid: UUID,
     override val name: String,
     public val image: Image,
+    public val runtime: Long,
     public val dependencies: Set<Task>,
     public val metadata: Map<String, Any> = emptyMap()
 ) : Identity {
