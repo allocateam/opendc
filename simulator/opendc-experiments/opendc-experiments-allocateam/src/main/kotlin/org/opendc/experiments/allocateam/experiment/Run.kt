@@ -43,10 +43,12 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
 
         val flopsPerCore = 1105000000000  // based on FLOPS of i7 6700k per core
 
+        val heftPolicyState = HeftPolicyState()
+
         val resourceSelectionPolicy = when (parent.allocationPolicy) {
             "min-min" -> MinMinResourceSelectionPolicy(flopsPerCore)
             "max-min" -> MaxMinResourceSelectionPolicy(flopsPerCore)
-            "heft" -> HeftPolicy()
+            "heft" -> HeftResourceSelectionPolicy(heftPolicyState)
             "round-robin" -> FirstFitResourceSelectionPolicy
             "lottery" -> FirstFitResourceSelectionPolicy
             else -> throw IllegalArgumentException("Unknown policy ${parent.allocationPolicy}")
@@ -59,6 +61,7 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
 
         val taskOrderPolicy = when(parent.allocationPolicy) {
             "lottery" -> LotteryPolicy(50)
+            "heft" -> HeftTaskOrderPolicy(heftPolicyState)
             else -> SubmissionTimeTaskOrderPolicy()
         }
 
