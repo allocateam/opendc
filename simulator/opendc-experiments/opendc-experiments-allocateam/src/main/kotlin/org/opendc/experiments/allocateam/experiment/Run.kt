@@ -10,10 +10,10 @@ import org.opendc.compute.core.metal.service.ProvisioningService
 import org.opendc.compute.core.metal.service.SimpleProvisioningService
 import org.opendc.experiments.allocateam.environment.AllocateamEnvironmentReader
 import org.opendc.experiments.allocateam.experiment.monitor.ParquetExperimentMonitor
-import org.opendc.experiments.allocateam.policies.LotteryPolicy
-import org.opendc.experiments.allocateam.policies.MaxMinResourceSelectionPolicy
-import org.opendc.experiments.allocateam.policies.MinMinResourceSelectionPolicy
-import org.opendc.experiments.allocateam.policies.RoundRobinPolicy
+import org.opendc.experiments.allocateam.policies.*
+import org.opendc.experiments.allocateam.policies.heft.HeftPolicyState
+import org.opendc.experiments.allocateam.policies.heft.HeftResourceSelectionPolicy
+import org.opendc.experiments.allocateam.policies.heft.HeftTaskOrderPolicy
 import org.opendc.experiments.sc20.runner.TrialExperimentDescriptor
 import org.opendc.experiments.sc20.runner.execution.ExperimentExecutionContext
 import org.opendc.format.trace.wtf.WtfTraceReader
@@ -46,9 +46,12 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
 
         val flopsPerCore = 1105000000000  // based on FLOPS of i7 6700k per core
 
+        val heftPolicyState = HeftPolicyState()
+
         val resourceSelectionPolicy = when (parent.allocationPolicy) {
             "min-min" -> MinMinResourceSelectionPolicy(flopsPerCore)
             "max-min" -> MaxMinResourceSelectionPolicy(flopsPerCore)
+            "heft" -> HeftResourceSelectionPolicy(heftPolicyState)
             "round-robin" -> FirstFitResourceSelectionPolicy
             "lottery" -> FirstFitResourceSelectionPolicy
             else -> throw IllegalArgumentException("Unknown policy ${parent.allocationPolicy}")
@@ -56,8 +59,13 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
 
         val taskEligibilityPolicy = when (parent.allocationPolicy) {
             "round-robin" -> RoundRobinPolicy(30)
-            "lottery" -> LotteryPolicy(50)
             else -> NullTaskEligibilityPolicy
+        }
+
+        val taskOrderPolicy = when(parent.allocationPolicy) {
+            "lottery" -> LotteryPolicy(50)
+            "heft" -> HeftTaskOrderPolicy(heftPolicyState)
+            else -> SubmissionTimeTaskOrderPolicy()
         }
 
         val monitor = ParquetExperimentMonitor(
@@ -90,7 +98,7 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
                 taskEligibilityPolicy = taskEligibilityPolicy,
 
                 // Order tasks by their submission time
-                taskOrderPolicy = SubmissionTimeTaskOrderPolicy(),
+                taskOrderPolicy = taskOrderPolicy,
 
                 // Put tasks on resources that can actually run them
                 resourceFilterPolicy = FunctionalResourceFilterPolicy,

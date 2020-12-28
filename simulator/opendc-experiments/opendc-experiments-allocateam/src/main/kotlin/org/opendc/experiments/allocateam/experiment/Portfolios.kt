@@ -24,7 +24,8 @@ public class AllocateamPortfolio(parent: Experiment, id: Int) : Portfolio(parent
         "min-min",
         "max-min",
         "round-robin",
-        "lottery"
+        "lottery",
+        "heft"
     )
 
     override val repetitions: Int = 1
