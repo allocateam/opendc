@@ -25,6 +25,7 @@ public class AllocateamPortfolio(parent: Experiment, id: Int) : Portfolio(parent
         "max-min",
         "round-robin",
         "lottery",
+        "heft",
         "elop"
     )
 

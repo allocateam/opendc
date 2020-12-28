@@ -65,6 +65,8 @@ public class WtfTraceReader(path: String) : TraceReader<Job> {
             val taskId = nextRecord.get("id") as Long
             val submitTime = nextRecord.get("ts_submit") as Long
             val runtime = nextRecord.get("runtime") as Long
+            val waitTime = nextRecord.get("wait_time") as Long
+            val networkIoTime = nextRecord.get("network_io_time") as Long
             val cores = (nextRecord.get("resource_amount_requested") as Double).toInt()
             @Suppress("UNCHECKED_CAST")
             val dependencies = (nextRecord.get("parents") as ArrayList<GenericRecord>).map {
@@ -81,6 +83,7 @@ public class WtfTraceReader(path: String) : TraceReader<Job> {
                 UUID(0L, taskId),
                 "<unnamed>",
                 SimWorkloadImage(UUID.randomUUID(), "<unnamed>", emptyMap(), SimFlopsWorkload(flops, cores)),
+                runtime,
                 HashSet(),
                 mapOf(WORKFLOW_TASK_DEADLINE to runtime)
             )

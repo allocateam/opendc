@@ -22,38 +22,24 @@
 
 package org.opendc.experiments.allocateam.policies
 
-import mu.KotlinLogging
-import org.opendc.workflows.service.JobState
 import org.opendc.workflows.service.StageWorkflowSchedulerListener
 import org.opendc.workflows.service.StageWorkflowService
 import org.opendc.workflows.service.TaskState
-import org.opendc.workflows.service.stage.task.TaskEligibilityPolicy
+import org.opendc.workflows.service.stage.task.TaskOrderPolicy
 import org.opendc.workflows.workload.Task
+import java.util.*
+import kotlin.collections.HashMap
 import kotlin.random.Random
 
-private val logger = KotlinLogging.logger {}
 
+public data class LotteryPolicy(public val lotteryRounds: Int) : TaskOrderPolicy {
 
-/**
- * A [TaskEligibilityPolicy] that limits the number of active tasks of a job in the system.
- */
-public data class LotteryPolicy(public val lotteryRounds: Int) : TaskEligibilityPolicy {
-
-    override fun invoke(scheduler: StageWorkflowService): TaskEligibilityPolicy.Logic =
-        object : TaskEligibilityPolicy.Logic, StageWorkflowSchedulerListener {
-
-            private var numScheduledSoFar = 0
-            private var tasksList: MutableList<Task> = mutableListOf()
-            private var numJobsStarted = 0
-            private var numJobsFinished = 0
-            private var numCycles = 0
+    override fun invoke(scheduler: StageWorkflowService): Comparator<TaskState> =
+        object : Comparator<TaskState>, StageWorkflowSchedulerListener {
+            private val taskTickets = HashMap<Task, Long>()
 
             init {
                 scheduler.addListener(this)
-            }
-
-            override fun cycleStarted(scheduler: StageWorkflowService) {
-//                logger.info("Cycle ${++numCycles} started")
             }
 
             fun rand(start: Int, end: Int): Int {
@@ -61,43 +47,33 @@ public data class LotteryPolicy(public val lotteryRounds: Int) : TaskEligibility
                 return Random(System.nanoTime()).nextInt(end - start + 1) + start
             }
 
-            override fun jobStarted(job: JobState) {
-//                logger.info("Job started: ${job.job.uid} number of jobs started: ${++numJobsStarted}")
-            }
-
-            override fun jobFinished(job: JobState) {
-//                logger.info("Job finished: ${job.job.uid} number of jobs finished: ${++numJobsFinished}")
-            }
-
             override fun taskReady(task: TaskState) {
-                tasksList.add(task.task)
-            }
-
-            override fun taskAssigned(task: TaskState) {
-                tasksList.remove(task.task)
-            }
-
-            override fun invoke(task: TaskState): TaskEligibilityPolicy.Advice {
-                if(numScheduledSoFar + 1 == lotteryRounds) {
-                    numScheduledSoFar = 0
-                    return TaskEligibilityPolicy.Advice.STOP
-                }
-
                 val taskHasDependencies:Boolean = task.task.dependencies.isNotEmpty()
                 val lotteryTickets:IntArray =
                     if(taskHasDependencies)
-                    IntArray(40){60 + (it + 1)} else //40% probability for tasks with dependencies
-                    IntArray(60){it + 1} //60% probability for tasks without dependencies
+                        IntArray(40){60 + (it + 1)} else //40% probability for tasks with dependencies
+                        IntArray(60){it + 1} //60% probability for tasks without dependencies
 
-                val taskLotteryTicket = rand(1, 100)
+                var countLotteryRoundsWon = 0
+                for (i in 1..lotteryRounds) {
+                    val taskLotteryTicket = rand(1, 100)
 
-                if(lotteryTickets.contains(taskLotteryTicket)) {
-                    return TaskEligibilityPolicy.Advice.ADMIT
+                    if(lotteryTickets.contains((taskLotteryTicket))) {
+                        countLotteryRoundsWon += 1
+                    }
                 }
 
-                return TaskEligibilityPolicy.Advice.DENY
+                taskTickets.put(task.task, countLotteryRoundsWon.toLong())
+            }
+
+            override fun taskAssigned(task: TaskState) {
+                taskTickets.remove(task.task)
+            }
+
+            override fun compare(o1: TaskState, o2: TaskState): Int {
+                return compareValuesBy(o1, o2) { taskState-> taskTickets.get(taskState.task) }.let { -it }
             }
         }
 
-    override fun toString(): String = "Lottery-($lotteryRounds)"
+    override fun toString(): String = "Lottery Policy"
 }

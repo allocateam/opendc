@@ -17,6 +17,9 @@ import org.opendc.experiments.allocateam.policies.MinMinResourceSelectionPolicy
 import org.opendc.experiments.allocateam.policies.RoundRobinPolicy
 import org.opendc.experiments.allocateam.policies.elop.ELOPJobAdmissionPolicy
 import org.opendc.experiments.allocateam.policies.elop.ELOPResourceSelectionPolicy
+import org.opendc.experiments.allocateam.policies.heft.HeftPolicyState
+import org.opendc.experiments.allocateam.policies.heft.HeftResourceSelectionPolicy
+import org.opendc.experiments.allocateam.policies.heft.HeftTaskOrderPolicy
 import org.opendc.experiments.sc20.runner.TrialExperimentDescriptor
 import org.opendc.experiments.sc20.runner.execution.ExperimentExecutionContext
 import org.opendc.format.trace.wtf.WtfTraceReader
@@ -52,25 +55,7 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
 
         val elopReservedNodes: MutableMap<JobState, MutableList<Node>> = mutableMapOf()
 
-        val jobAdmissionPolicy = when (parent.allocationPolicy) {
-            "elop" -> ELOPJobAdmissionPolicy(elopReservedNodes)
-            else -> NullJobAdmissionPolicy
-        }
-
-        val resourceSelectionPolicy = when (parent.allocationPolicy) {
-            "min-min" -> MinMinResourceSelectionPolicy(flopsPerCore)
-            "max-min" -> MaxMinResourceSelectionPolicy(flopsPerCore)
-            "round-robin" -> FirstFitResourceSelectionPolicy
-            "lottery" -> FirstFitResourceSelectionPolicy
-            "elop" -> ELOPResourceSelectionPolicy(elopReservedNodes)
-            else -> throw IllegalArgumentException("Unknown policy ${parent.allocationPolicy}")
-        }
-
-        val taskEligibilityPolicy = when (parent.allocationPolicy) {
-            "round-robin" -> RoundRobinPolicy(30)
-            "lottery" -> LotteryPolicy(50)
-            else -> NullTaskEligibilityPolicy
-        }
+        val heftPolicyState = HeftPolicyState()
 
         val monitor = ParquetExperimentMonitor(
             parent.parent.parent.output,
@@ -93,22 +78,40 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
                 mode = WorkflowSchedulerMode.Batch(100),
 
                 // Admit all jobs
-                jobAdmissionPolicy = jobAdmissionPolicy,
+                jobAdmissionPolicy = when (parent.allocationPolicy) {
+                    "elop" -> ELOPJobAdmissionPolicy(elopReservedNodes)
+                    else -> NullJobAdmissionPolicy
+                },
 
                 // Order jobs by their submission time
                 jobOrderPolicy = SubmissionTimeJobOrderPolicy(),
 
                 // All tasks are eligible to be scheduled
-                taskEligibilityPolicy = taskEligibilityPolicy,
+                taskEligibilityPolicy = when (parent.allocationPolicy) {
+                    "round-robin" -> RoundRobinPolicy(30)
+                    else -> NullTaskEligibilityPolicy
+                },
 
                 // Order tasks by their submission time
-                taskOrderPolicy = SubmissionTimeTaskOrderPolicy(),
+                taskOrderPolicy = when (parent.allocationPolicy) {
+                    "lottery" -> LotteryPolicy(50)
+                    "heft" -> HeftTaskOrderPolicy(heftPolicyState)
+                    else -> SubmissionTimeTaskOrderPolicy()
+                },
 
                 // Put tasks on resources that can actually run them
                 resourceFilterPolicy = FunctionalResourceFilterPolicy,
 
                 // Actual allocation policy (select the resource on which to place the task)
-                resourceSelectionPolicy = resourceSelectionPolicy,
+                resourceSelectionPolicy = when (parent.allocationPolicy) {
+                    "min-min" -> MinMinResourceSelectionPolicy(flopsPerCore)
+                    "max-min" -> MaxMinResourceSelectionPolicy(flopsPerCore)
+                    "round-robin" -> FirstFitResourceSelectionPolicy
+                    "lottery" -> FirstFitResourceSelectionPolicy
+                    "heft" -> HeftResourceSelectionPolicy(heftPolicyState)
+                    "elop" -> ELOPResourceSelectionPolicy(elopReservedNodes)
+                    else -> throw IllegalArgumentException("Unknown policy ${parent.allocationPolicy}")
+                },
             )
         }
 

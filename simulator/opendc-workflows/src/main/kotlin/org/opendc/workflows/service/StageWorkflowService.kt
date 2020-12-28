@@ -80,7 +80,7 @@ public class StageWorkflowService(
     /**
      * The task queue.
      */
-    internal val taskQueue: Queue<TaskState>
+    public val taskQueue: Queue<TaskState>
 
     /**
      * The active jobs in the system.
@@ -100,7 +100,7 @@ public class StageWorkflowService(
     /**
      * The nodes that are controlled by the service.
      */
-    internal lateinit var nodes: List<Node>
+    public lateinit var nodes: List<Node>
 
     /**
      * The available nodes.

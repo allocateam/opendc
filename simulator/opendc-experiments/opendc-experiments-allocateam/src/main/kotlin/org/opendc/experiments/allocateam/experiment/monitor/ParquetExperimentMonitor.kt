@@ -1,10 +1,14 @@
 package org.opendc.experiments.allocateam.experiment.monitor
 
 import org.opendc.compute.core.metal.Node
-import org.opendc.compute.simulator.SimWorkloadImage
-import org.opendc.experiments.allocateam.telemetry.events.*
-import org.opendc.experiments.allocateam.telemetry.writers.*
-import org.opendc.simulator.compute.workload.SimFlopsWorkload
+import org.opendc.experiments.allocateam.telemetry.events.JobLifecycleEvent
+import org.opendc.experiments.allocateam.telemetry.events.PowerConsumptionEvent
+import org.opendc.experiments.allocateam.telemetry.events.RunDurationEvent
+import org.opendc.experiments.allocateam.telemetry.events.TaskLifecycleEvent
+import org.opendc.experiments.allocateam.telemetry.writers.JobLifecycleWriter
+import org.opendc.experiments.allocateam.telemetry.writers.PowerConsumptionWriter
+import org.opendc.experiments.allocateam.telemetry.writers.RunDurationWriter
+import org.opendc.experiments.allocateam.telemetry.writers.TaskLifecycleWriter
 import org.opendc.workflows.service.TaskState
 import org.opendc.workflows.service.WorkflowEvent
 import org.opendc.workflows.workload.Job
