@@ -74,7 +74,7 @@ public class HeftResourceSelectionPolicy(public var heftPolicyState: HeftPolicyS
             }
 
             override fun toString(): String {
-                return "HeftPolicy()"
+                return "HeftPolicy() - Resource"
             }
         }
 }

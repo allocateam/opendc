@@ -151,8 +151,8 @@ public class HeftPolicyState {
     public fun getAgentForTaskState(taskState: TaskState): Node? {
         val job = taskState.job
         val agent = heftJobsOn[job]?.get(taskState)
-        val event = heftOrdersJobs[job]?.get(agent)?.filter { event -> event.task == taskState }?.get(0)
-        println("Agent: ${agent?.name}, Job: ${job.job.uid} Event: [${event?.task?.task?.uid}, ${event?.start}, ${event?.end}]")
+//        val event = heftOrdersJobs[job]?.get(agent)?.filter { event -> event.task == taskState }?.get(0)
+//        println("Agent: ${agent?.name}, Job: ${job.job.uid} Event: [${event?.task?.task?.uid}, ${event?.start}, ${event?.end}]")
         return agent
     }
 }
