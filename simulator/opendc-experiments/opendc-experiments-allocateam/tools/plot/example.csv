@@ -1,5 +1,0 @@
-portfolio_id,portfolio_name,scenario_id,run_id,repetitions,topology,workload_name,resource_selection_policy,task_eligibility_policy,task_throughput
-0,smokeTest,0,0,2,single,shell,min-max,null,1276.0
-0,smokeTest,0,1,2,single,shell,min-max,null,1276.0
-0,smokeTest,1,1,2,single,askalon_ee,min-max,null,9376.0
-0,smokeTest,1,0,2,single,askalon_ee,min-max,null,9376.0

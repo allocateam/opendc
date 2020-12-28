@@ -8,11 +8,16 @@ import kotlinx.coroutines.test.TestCoroutineScope
 import mu.KotlinLogging
 import org.opendc.compute.core.metal.Node
 import org.opendc.compute.core.metal.service.ProvisioningService
-import org.opendc.experiments.allocateam.experiment.monitor.RunMonitor
 import org.opendc.experiments.allocateam.policies.*
+import org.opendc.compute.core.metal.service.SimpleProvisioningService
+import org.opendc.experiments.allocateam.environment.AllocateamEnvironmentReader
+import org.opendc.experiments.allocateam.experiment.monitor.ParquetExperimentMonitor
+import org.opendc.experiments.allocateam.policies.LotteryPolicy
+import org.opendc.experiments.allocateam.policies.MaxMinResourceSelectionPolicy
+import org.opendc.experiments.allocateam.policies.MinMinResourceSelectionPolicy
+import org.opendc.experiments.allocateam.policies.RoundRobinPolicy
 import org.opendc.experiments.sc20.runner.TrialExperimentDescriptor
 import org.opendc.experiments.sc20.runner.execution.ExperimentExecutionContext
-import org.opendc.format.environment.sc18.Sc18EnvironmentReader
 import org.opendc.format.trace.wtf.WtfTraceReader
 import org.opendc.simulator.utils.DelayControllerClockAdapter
 import org.opendc.workflows.service.JobState
@@ -36,50 +41,54 @@ private val logger = KotlinLogging.logger {}
  * A repetition of a scenario that runs the scenario on the simulator.
  */
 public data class Run(override val parent: Scenario, val id: Int, val seed: Int) : TrialExperimentDescriptor() {
-    public var runStatus: RunStatus = RunStatus.IDLE
-
     @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun invoke(context: ExperimentExecutionContext) {
         val experiment = parent.parent.parent
         val testScope = TestCoroutineScope()
         val clock = DelayControllerClockAdapter(testScope)
 
-        val monitor = RunMonitor(this, clock)
-
         val flopsPerCore = 1105000000000  // based on FLOPS of i7 6700k per core
 
         val elopReservedNodes: MutableMap<JobState, MutableList<Node>> = mutableMapOf()
 
-        val jobAdmissionPolicy = when (parent.resourceAllocationPolicy) {
+        val jobAdmissionPolicy = when (parent.allocationPolicy) {
             "elop" -> ELOPJobAdmissionPolicy(elopReservedNodes)
             else -> NullJobAdmissionPolicy
         }
 
-        val resourceSelectionPolicy = when (parent.resourceAllocationPolicy) {
+        val resourceSelectionPolicy = when (parent.allocationPolicy) {
             "min-min" -> MinMinResourceSelectionPolicy(flopsPerCore)
             "max-min" -> MaxMinResourceSelectionPolicy(flopsPerCore)
             "round-robin" -> FirstFitResourceSelectionPolicy
             "lottery" -> FirstFitResourceSelectionPolicy
             "elop" -> ELOPResourceSelectionPolicy(elopReservedNodes)
-            else -> throw IllegalArgumentException("Unknown policy ${parent.resourceAllocationPolicy}")
+            else -> throw IllegalArgumentException("Unknown policy ${parent.allocationPolicy}")
         }
 
-        val taskEligibilityPolicy = when (parent.resourceAllocationPolicy) {
+        val taskEligibilityPolicy = when (parent.allocationPolicy) {
             "round-robin" -> RoundRobinPolicy(30)
             "lottery" -> LotteryPolicy(50)
             else -> NullTaskEligibilityPolicy
         }
 
-        val schedulerAsync = testScope.async {
-            // Environment file describing topology can be found in the resources of this project
-            val resourcesFile = File("/env/", parent.topology.name + ".json").absolutePath
-            val environment = Sc18EnvironmentReader(object {}.javaClass.getResourceAsStream(resourcesFile))
-                .use { it.construct(testScope, clock) }
+        val monitor = ParquetExperimentMonitor(
+            parent.parent.parent.output,
+            "portfolio_id=${parent.parent.id}/scenario_id=${parent.id}/run_id=$id",
+            4096
+        )
 
+        // Environment file describing topology can be found in the resources of this project
+        val resourcesFile = File("/env/", parent.topology.name + ".json").absolutePath
+        val environment = AllocateamEnvironmentReader(object {}.javaClass.getResourceAsStream(resourcesFile))
+            .use { it.construct(testScope, clock) }
+
+        val provisioningService = environment.platforms[0].zones[0].services[ProvisioningService] as SimpleProvisioningService
+
+        val schedulerAsync = testScope.async {
             StageWorkflowService(
                 testScope,
                 clock,
-                environment.platforms[0].zones[0].services[ProvisioningService],
+                provisioningService,
                 mode = WorkflowSchedulerMode.Batch(100),
 
                 // Admit all jobs
@@ -109,18 +118,17 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
                 this,
                 clock,
                 scheduler,
-                monitor
+                monitor,
+                provisioningService
             )
         }
-
-        this.runStatus = RunStatus.RUNNING
-
 
         testScope.launch {
             val tracePath = File(experiment.traces.absolutePath, parent.workload.name).absolutePath
             val reader = WtfTraceReader(tracePath)
             val scheduler = schedulerAsync.await()
 
+            monitor.reportRunStarted(clock.millis())
             while (reader.hasNext()) {
                 val (time, job) = reader.next()
 
@@ -131,9 +139,10 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
 
         try {
             testScope.advanceUntilIdle()
+            testScope.uncaughtExceptions.forEach { it.printStackTrace() }
         } finally {
-            this.runStatus = RunStatus.FINISHED
-            monitor.generateMetrics()
+            monitor.reportRunFinished(clock.millis())
+            monitor.close()
         }
     }
 }

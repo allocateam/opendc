@@ -62,4 +62,8 @@ public class SimpleProvisioningService : ProvisioningService {
             node
         }
     }
+
+    public fun allNodes() : Map<Node, BareMetalDriver> {
+        return nodes.toMap()
+    }
 }

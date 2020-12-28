@@ -9,12 +9,15 @@ import org.opendc.experiments.sc20.experiment.model.Workload
 
 public class AllocateamPortfolio(parent: Experiment, id: Int) : Portfolio(parent, id, "allocateam") {
     override val topologies: List<Topology> = listOf(
-        Topology("single")
+        Topology("small"),
+        Topology("medium"),
+        Topology("large")
     )
 
     override val workloads: List<Workload> = listOf(
         Workload("shell", 1.0),
-        Workload("askalon_ee", 1.0)
+        Workload("askalon_ee", 1.0),
+        Workload("spec_trace-2", 1.0),
     )
 
     override val resourceAllocationPolicies: List<String> = listOf(
@@ -25,5 +28,5 @@ public class AllocateamPortfolio(parent: Experiment, id: Int) : Portfolio(parent
         "elop"
     )
 
-    override val repetitions: Int = 4
+    override val repetitions: Int = 1
 }
