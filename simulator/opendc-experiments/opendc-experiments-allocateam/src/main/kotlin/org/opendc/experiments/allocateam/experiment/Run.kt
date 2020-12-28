@@ -6,25 +6,25 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestCoroutineScope
 import mu.KotlinLogging
+import org.opendc.compute.core.metal.Node
 import org.opendc.compute.core.metal.service.ProvisioningService
 import org.opendc.experiments.allocateam.experiment.monitor.RunMonitor
-import org.opendc.experiments.allocateam.policies.LotteryPolicy
-import org.opendc.experiments.allocateam.policies.MaxMinResourceSelectionPolicy
-import org.opendc.experiments.allocateam.policies.MinMinResourceSelectionPolicy
+import org.opendc.experiments.allocateam.policies.*
 import org.opendc.experiments.sc20.runner.TrialExperimentDescriptor
 import org.opendc.experiments.sc20.runner.execution.ExperimentExecutionContext
 import org.opendc.format.environment.sc18.Sc18EnvironmentReader
 import org.opendc.format.trace.wtf.WtfTraceReader
 import org.opendc.simulator.utils.DelayControllerClockAdapter
+import org.opendc.workflows.service.JobState
 import org.opendc.workflows.service.StageWorkflowService
 import org.opendc.workflows.service.WorkflowSchedulerMode
 import org.opendc.workflows.service.stage.job.NullJobAdmissionPolicy
 import org.opendc.workflows.service.stage.job.SubmissionTimeJobOrderPolicy
-import org.opendc.workflows.service.stage.resource.FunctionalResourceFilterPolicy
-import org.opendc.experiments.allocateam.policies.RoundRobinPolicy
 import org.opendc.workflows.service.stage.resource.FirstFitResourceSelectionPolicy
+import org.opendc.workflows.service.stage.resource.FunctionalResourceFilterPolicy
 import org.opendc.workflows.service.stage.task.NullTaskEligibilityPolicy
 import org.opendc.workflows.service.stage.task.SubmissionTimeTaskOrderPolicy
+import org.opendc.workflows.workload.Job
 import java.io.File
 import kotlin.math.max
 
@@ -49,11 +49,19 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
 
         val flopsPerCore = 1105000000000  // based on FLOPS of i7 6700k per core
 
+        val elopReservedNodes: MutableMap<JobState, MutableList<Node>> = mutableMapOf()
+
+        val jobAdmissionPolicy = when (parent.resourceAllocationPolicy) {
+            "elop" -> ELOPJobAdmissionPolicy(elopReservedNodes)
+            else -> NullJobAdmissionPolicy
+        }
+
         val resourceSelectionPolicy = when (parent.resourceAllocationPolicy) {
             "min-min" -> MinMinResourceSelectionPolicy(flopsPerCore)
             "max-min" -> MaxMinResourceSelectionPolicy(flopsPerCore)
             "round-robin" -> FirstFitResourceSelectionPolicy
             "lottery" -> FirstFitResourceSelectionPolicy
+            "elop" -> ELOPResourceSelectionPolicy(elopReservedNodes)
             else -> throw IllegalArgumentException("Unknown policy ${parent.resourceAllocationPolicy}")
         }
 
@@ -76,7 +84,7 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
                 mode = WorkflowSchedulerMode.Batch(100),
 
                 // Admit all jobs
-                jobAdmissionPolicy = NullJobAdmissionPolicy,
+                jobAdmissionPolicy = jobAdmissionPolicy,
 
                 // Order jobs by their submission time
                 jobOrderPolicy = SubmissionTimeJobOrderPolicy(),
@@ -108,14 +116,33 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
 
         this.runStatus = RunStatus.RUNNING
 
+        fun print_job(job: Job) {
+            println("job.name:" + job.uid)
+            println("tasks:")
+            for (task in job.tasks) {
+                println("\ttask.name:" + task.uid)
+//                println("\ttask.dependencies:" + task.dependencies)
+            }
+        }
+
         testScope.launch {
             val tracePath = File(experiment.traces.absolutePath, parent.workload.name).absolutePath
             val reader = WtfTraceReader(tracePath)
             val scheduler = schedulerAsync.await()
+            var i = 0
+            val LIMIT = 3
             while (reader.hasNext()) {
+                if (i == LIMIT) {
+                    println("BREAKING!")
+                    break
+                }
                 val (time, job) = reader.next()
+                println("\nPRINTING JOB!")
+                print_job(job)
+
                 delay(max(0, time * 1000 - clock.millis()))
                 scheduler.submit(job)
+                i++
             }
         }
 
