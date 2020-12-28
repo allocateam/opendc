@@ -59,10 +59,11 @@ class MetricWorkloadPlot(Plot):
 
             for workload in data.workload.unique():
                 plt.figure(figsize=(10, 5))
+                data['workload-topology'] = data.workload + " / " + data.topology
                 g = self.method(
                     data=data[(data.workload == workload) & (data.topology == topology)],
                     x=metric.name,
-                    y="workload",
+                    y="workload-topology",
                     hue="allocation_policy",
                     ci=None,
                 )
@@ -72,6 +73,7 @@ class MetricWorkloadPlot(Plot):
 
                 g.set_xlabel(x_axis_label)
                 g.set_ylabel("Workload")
+                plt.yticks(rotation=90, va="center")
                 plt.legend(title="Allocation policy", bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
 
                 plt.tight_layout()

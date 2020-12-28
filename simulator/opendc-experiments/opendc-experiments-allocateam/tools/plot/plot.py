@@ -90,7 +90,7 @@ def main():
 
     sns.set(
         style="darkgrid",
-        font_scale=1.4
+        font_scale=1.6
     )
     plotter = Plotter(all_metrics, all_plots, args.path)
     plotter.plot_all()
