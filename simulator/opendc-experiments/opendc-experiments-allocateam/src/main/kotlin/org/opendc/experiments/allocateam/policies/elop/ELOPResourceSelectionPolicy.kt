@@ -1,4 +1,4 @@
-package org.opendc.experiments.allocateam.policies
+package org.opendc.experiments.allocateam.policies.elop
 
 import org.opendc.compute.core.metal.Node
 import org.opendc.workflows.service.JobState

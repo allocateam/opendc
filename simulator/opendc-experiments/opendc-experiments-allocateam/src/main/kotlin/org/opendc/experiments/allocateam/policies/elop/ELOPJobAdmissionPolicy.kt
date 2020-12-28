@@ -1,4 +1,4 @@
-package org.opendc.experiments.allocateam.policies
+package org.opendc.experiments.allocateam.policies.elop
 
 import org.opendc.compute.core.metal.Node
 import org.opendc.workflows.service.JobState
@@ -77,7 +77,7 @@ public class ELOPJobAdmissionPolicy(private val reservedNodes: MutableMap<JobSta
     }
 
     private fun getNonReservedNodes(availableNodes: List<Node>): List<Node> {
-        var unavailableNodes: MutableSet<Node> = mutableSetOf()
+        val unavailableNodes: MutableSet<Node> = mutableSetOf()
 
         for ((_, nodes) in this.reservedNodes) {
             unavailableNodes.addAll(nodes)

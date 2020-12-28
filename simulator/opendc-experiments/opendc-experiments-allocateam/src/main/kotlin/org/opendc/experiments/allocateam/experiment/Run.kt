@@ -8,7 +8,6 @@ import kotlinx.coroutines.test.TestCoroutineScope
 import mu.KotlinLogging
 import org.opendc.compute.core.metal.Node
 import org.opendc.compute.core.metal.service.ProvisioningService
-import org.opendc.experiments.allocateam.policies.*
 import org.opendc.compute.core.metal.service.SimpleProvisioningService
 import org.opendc.experiments.allocateam.environment.AllocateamEnvironmentReader
 import org.opendc.experiments.allocateam.experiment.monitor.ParquetExperimentMonitor
@@ -16,6 +15,8 @@ import org.opendc.experiments.allocateam.policies.LotteryPolicy
 import org.opendc.experiments.allocateam.policies.MaxMinResourceSelectionPolicy
 import org.opendc.experiments.allocateam.policies.MinMinResourceSelectionPolicy
 import org.opendc.experiments.allocateam.policies.RoundRobinPolicy
+import org.opendc.experiments.allocateam.policies.elop.ELOPJobAdmissionPolicy
+import org.opendc.experiments.allocateam.policies.elop.ELOPResourceSelectionPolicy
 import org.opendc.experiments.sc20.runner.TrialExperimentDescriptor
 import org.opendc.experiments.sc20.runner.execution.ExperimentExecutionContext
 import org.opendc.format.trace.wtf.WtfTraceReader

@@ -11,8 +11,8 @@ import org.opendc.compute.core.metal.Node
 import org.opendc.compute.core.metal.service.ProvisioningService
 import org.opendc.compute.simulator.SimWorkloadImage
 import org.opendc.core.User
-import org.opendc.experiments.allocateam.policies.ELOPJobAdmissionPolicy
-import org.opendc.experiments.allocateam.policies.ELOPResourceSelectionPolicy
+import org.opendc.experiments.allocateam.policies.elop.ELOPJobAdmissionPolicy
+import org.opendc.experiments.allocateam.policies.elop.ELOPResourceSelectionPolicy
 import org.opendc.format.environment.sc18.Sc18EnvironmentReader
 import org.opendc.simulator.compute.workload.SimFlopsWorkload
 import org.opendc.simulator.utils.DelayControllerClockAdapter
