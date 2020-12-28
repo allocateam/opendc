@@ -1,6 +1,5 @@
-package org.opendc.experiments.allocateam.policies
+package org.opendc.experiments.allocateam.policies.heft
 
-import mu.KotlinLogging
 import org.opendc.compute.core.metal.Node
 import org.opendc.workflows.service.JobState
 import org.opendc.workflows.service.TaskState
@@ -8,9 +7,7 @@ import org.opendc.workflows.service.TaskState
 
 public class HeftPolicyState {
 
-    public data class Event(val task: TaskState?, val start: Long?, val end:Long)
-
-
+    public data class Event(val task: TaskState?, val start: Long?, val end: Long)
 
     private val computedTaskRanks = HashMap<TaskState, Long>()
     private val allNodes: MutableSet<Node> = mutableSetOf()
@@ -23,17 +20,14 @@ public class HeftPolicyState {
     }
 
     private fun calculateRankOfTask(task: TaskState): Long {
-        var taskWeight: Long
-        var taskRank: Long
-
-        taskWeight = task.task.runtime
+        val taskWeight = task.task.runtime
 
         // Check that avoids infinite loops
-        if(task in computedTaskRanks) {
+        if (task in computedTaskRanks) {
             return computedTaskRanks[task]!!
         }
 
-        taskRank = if (task.dependents.size > 0)
+        val taskRank: Long = if (task.dependents.size > 0)
             taskWeight + task.dependents
                 .map { t -> calculateCommunicationCostOfTask(t) + calculateRankOfTask(t) }
                 .maxOrNull()!! else
@@ -43,7 +37,7 @@ public class HeftPolicyState {
         return taskRank
     }
 
-    private fun endTime(task:TaskState, events: MutableList<Event>): Long {
+    private fun endTime(task: TaskState, events: MutableList<Event>): Long {
         return events.filter { event -> event.task == task }[0].end
     }
 
@@ -54,12 +48,11 @@ public class HeftPolicyState {
 
         try {
             val duration = task.task.runtime
-
             var commReady: Long = 0
 
-            if(task.dependents.size > 0) {
+            if (task.dependents.size > 0) {
                 commReady = task.dependents
-                    .map { t -> if(t in jobsOn) endTime(t, orders[jobsOn[t]]!!) else 0 }
+                    .map { t -> if (t in jobsOn) endTime(t, orders[jobsOn[t]]!!) else 0 }
                     .maxOrNull()!!
             }
 
@@ -74,19 +67,19 @@ public class HeftPolicyState {
                              desiredStartTime: Long,
                              duration: Long): Long {
 
-        if(agentOrders.isNullOrEmpty()) {
+        if (agentOrders.isNullOrEmpty()) {
             return desiredStartTime
         }
 
-        val a = mutableListOf<Event>(Event(null, null, 0))
+        val a = mutableListOf(Event(null, null, 0))
         a.addAll(agentOrders.dropLast(1))
 
-        for(e in a zip agentOrders) {
+        for (e in a zip agentOrders) {
             val e1 = e.first
             val e2 = e.second
 
             val earliestStart = maxOf(desiredStartTime, e1.end)
-            if(e2.start!! - earliestStart > duration) {
+            if (e2.start!! - earliestStart > duration) {
                 return earliestStart
             }
         }
@@ -96,10 +89,10 @@ public class HeftPolicyState {
 
     private fun scheduleTasks(job: JobState, taskRanks: HashMap<TaskState, Long>) {
         val orderedTasksByRanks = taskRanks.toList().sortedBy { p -> p.second }
-        var orders: MutableMap<Node, MutableList<Event>> = allNodes.map { it to mutableListOf<Event>() }
+        val orders: MutableMap<Node, MutableList<Event>> = allNodes.map { it to mutableListOf<Event>() }
             .toMap()
             .toMutableMap()
-        var jobsOn: MutableMap<TaskState, Node> = mutableMapOf()
+        val jobsOn: MutableMap<TaskState, Node> = mutableMapOf()
         allocateTasks(job, orderedTasksByRanks, orders, jobsOn)
     }
 
@@ -119,7 +112,6 @@ public class HeftPolicyState {
             orders[agent]!!.sortBy { e -> e.start }
 
             jobsOn[task] = agent
-
         }
 
         heftOrdersJobs.put(job, orders)
@@ -151,7 +143,7 @@ public class HeftPolicyState {
     public fun getAgentForTaskState(taskState: TaskState): Node? {
         val job = taskState.job
         val agent = heftJobsOn[job]?.get(taskState)
-//        val event = heftOrdersJobs[job]?.get(agent)?.filter { event -> event.task == taskState }?.get(0)
+// val event = heftOrdersJobs[job]?.get(agent)?.filter { event -> event.task == taskState }?.get(0)
 //        println("Agent: ${agent?.name}, Job: ${job.job.uid} Event: [${event?.task?.task?.uid}, ${event?.start}, ${event?.end}]")
         return agent
     }

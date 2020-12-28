@@ -11,6 +11,9 @@ import org.opendc.compute.core.metal.service.SimpleProvisioningService
 import org.opendc.experiments.allocateam.environment.AllocateamEnvironmentReader
 import org.opendc.experiments.allocateam.experiment.monitor.ParquetExperimentMonitor
 import org.opendc.experiments.allocateam.policies.*
+import org.opendc.experiments.allocateam.policies.heft.HeftPolicyState
+import org.opendc.experiments.allocateam.policies.heft.HeftResourceSelectionPolicy
+import org.opendc.experiments.allocateam.policies.heft.HeftTaskOrderPolicy
 import org.opendc.experiments.sc20.runner.TrialExperimentDescriptor
 import org.opendc.experiments.sc20.runner.execution.ExperimentExecutionContext
 import org.opendc.format.trace.wtf.WtfTraceReader
