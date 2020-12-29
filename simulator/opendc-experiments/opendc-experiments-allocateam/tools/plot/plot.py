@@ -5,12 +5,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Dict, Type
 
-import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 
-from metrics import Metric, Plot
 import metrics
+from metrics import Metric, Plot
 
 
 def iter_runs(experiments):

@@ -7,7 +7,7 @@ class PowerConsumptionMetric(Metric):
     def __init__(self, plot, runs):
         super().__init__(plot, runs)
         self.name = "power_consumption"
-        self.x_axis_label = "Power Consumption (watts)"
+        self.x_axis_label = "Power Consumption (watt-hours)"
 
     def get_data(self, run):
         run_duration = pd.read_parquet(metric_path("run-duration", run)).run_duration[0]
