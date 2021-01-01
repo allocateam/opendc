@@ -1,25 +1,4 @@
 {
-    "name": "Small topology (10 machines with dual core CPUs)",
-    "rooms": [
-        {
-            "type": "SERVER",
-            "objects": [
-                {
-                    "type": "RACK",
-                    "machines": [
-                        { "cpus": [2] },
-                        { "cpus": [2] },
-                        { "cpus": [2] },
-                        { "cpus": [2] },
-                        { "cpus": [2] },
-                        { "cpus": [2] },
-                        { "cpus": [2] },
-                        { "cpus": [2] },
-                        { "cpus": [2] },
-                        { "cpus": [2] }
-                    ]
-                }
-            ]
-        }
-    ]
+    "name": "Small topology (32 machines with dual core CPUs)",
+    "totalMachines": 32
 }
