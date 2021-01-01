@@ -22,8 +22,15 @@ import java.time.Clock
 import java.util.*
 
 /**
- * A parser for the JSON experiment setup files used for the SC18 paper: "A Reference Architecture for Topology
- * Schedulers".
+ * A topology setup.
+ *
+ * @property name The name of the setup.
+ * @property rooms The rooms in the topology.
+ */
+internal data class Setup(val name: String, val totalMachines: Int)
+
+/**
+ * A parser for the JSON experiment setup files used for the Allocateam experiment.
  *
  * @param input The input stream to read from.
  * @param mapper The Jackson object mapper to use.
@@ -35,42 +42,23 @@ public class AllocateamEnvironmentReader(input: InputStream, mapper: ObjectMappe
     private val setup: Setup = mapper.readValue(input)
 
     override suspend fun construct(coroutineScope: CoroutineScope, clock: Clock): Environment {
-        var counter = 0
-        val nodes = setup.rooms.flatMap { room ->
-            room.objects.flatMap { roomObject ->
-                when (roomObject) {
-                    is RoomObject.Rack -> {
-                        roomObject.machines.map { machine ->
-                            val cores = machine.cpus.flatMap { id ->
-                                when (id) {
-                                    1 -> {
-                                        val node = ProcessingNode("Intel", "Core(TM) i7-6920HQ", "amd64", 4)
-                                        List(node.coreCount) { ProcessingUnit(node, it, 4100.0) }
-                                    }
-                                    2 -> {
-                                        val node = ProcessingNode("Intel", "Core(TM) i7-6920HQ", "amd64", 2)
-                                        List(node.coreCount) { ProcessingUnit(node, it, 3500.0) }
-                                    }
-                                    else -> throw IllegalArgumentException("The cpu id $id is not recognized")
-                                }
-                            }
-                            SimBareMetalDriver(
-                                coroutineScope,
-                                clock,
-                                UUID.randomUUID(),
-                                "node-${counter++}",
-                                emptyMap(),
-                                SimMachineModel(cores, listOf(MemoryUnit("", "", 2300.0, 16000))),
+        val nodes = (0 until setup.totalMachines).map { id ->
+            val node = ProcessingNode("Intel", "Core(TM) i7-6920HQ", "amd64", 2)
+            val cores = List(node.coreCount) { ProcessingUnit(node, it, 3500.0) }
 
-                                // For now we assume a simple linear load model with an idle draw of ~200W and a maximum
-                                // power draw of 350W.
-                                // Source: https://stackoverflow.com/questions/6128960
-                                powerModel = LinearLoadPowerModel(200.0, 350.0)
-                            )
-                        }
-                    }
-                }
-            }
+            SimBareMetalDriver(
+                coroutineScope,
+                clock,
+                UUID.randomUUID(),
+                "node-${id}",
+                emptyMap(),
+                SimMachineModel(cores, listOf(MemoryUnit("", "", 2300.0, 16000))),
+
+                // For now we assume a simple linear load model with an idle draw of ~200W and a maximum
+                // power draw of 350W.
+                // Source: https://stackoverflow.com/questions/6128960
+                powerModel = LinearLoadPowerModel(200.0, 350.0)
+            )
         }
 
         val provisioningService = SimpleProvisioningService()

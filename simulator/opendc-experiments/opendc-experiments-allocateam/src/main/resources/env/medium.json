@@ -1,36 +1,4 @@
 {
-    "name": "Medium topology (32 machines with dual core CPUs)",
-    "rooms": [
-        {
-            "type": "SERVER",
-            "objects": [
-                {
-                    "type": "RACK",
-                    "machines": [
-                        { "cpus": [2] }, { "cpus": [2] },
-                        { "cpus": [2] }, { "cpus": [2] },
-                        { "cpus": [2] }, { "cpus": [2] },
-                        { "cpus": [2] }, { "cpus": [2] },
-                        { "cpus": [2] }, { "cpus": [2] },
-                        { "cpus": [2] }, { "cpus": [2] },
-                        { "cpus": [2] }, { "cpus": [2] },
-                        { "cpus": [2] }, { "cpus": [2] }
-                    ]
-                },
-                {
-                    "type": "RACK",
-                    "machines": [
-                        { "cpus": [2] }, { "cpus": [2] },
-                        { "cpus": [2] }, { "cpus": [2] },
-                        { "cpus": [2] }, { "cpus": [2] },
-                        { "cpus": [2] }, { "cpus": [2] },
-                        { "cpus": [2] }, { "cpus": [2] },
-                        { "cpus": [2] }, { "cpus": [2] },
-                        { "cpus": [2] }, { "cpus": [2] },
-                        { "cpus": [2] }, { "cpus": [2] }
-                    ]
-                }
-            ]
-        }
-    ]
+    "name": "Medium topology (256 machines with dual core CPUs)",
+    "totalMachines": 256
 }
