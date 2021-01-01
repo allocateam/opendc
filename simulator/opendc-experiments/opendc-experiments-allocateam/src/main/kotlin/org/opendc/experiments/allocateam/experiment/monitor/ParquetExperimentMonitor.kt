@@ -12,14 +12,14 @@ import org.opendc.experiments.allocateam.telemetry.writers.TaskLifecycleWriter
 import org.opendc.workflows.service.TaskState
 import org.opendc.workflows.service.WorkflowEvent
 import org.opendc.workflows.workload.Job
-import org.opendc.workflows.workload.Task
 import java.io.File
+import java.util.*
 
 public class ParquetExperimentMonitor(base: File, partition: String, bufferSize: Int) {
     private var startTime: Long = 0
 
     private val jobLifecycleEvents = mutableMapOf<Job, JobLifecycleEvent>()
-    private val taskLifecycleEvents = mutableMapOf<Task, TaskLifecycleEvent>()
+    private val taskLifecycleEvents = mutableMapOf<UUID, TaskLifecycleEvent>()
 
     private val powerConsumptionWriter = PowerConsumptionWriter(
         File(base, "power-consumption/$partition/data.parquet"),
@@ -74,18 +74,18 @@ public class ParquetExperimentMonitor(base: File, partition: String, bufferSize:
     public fun reportTaskSubmitted(time: Long, event: WorkflowEvent.TaskSubmitted) {
         val taskEvent = TaskLifecycleEvent(0, event.task.task.uid.toString(), event.task.job.job.uid.toString())
         taskEvent.submissionTime = time
-        taskLifecycleEvents[event.task.task] = taskEvent
+        taskLifecycleEvents[event.task.task.uid] = taskEvent
     }
 
     public fun reportTaskStarted(time: Long, task: TaskState) {
-        taskLifecycleEvents[task.task]?.let {
+        taskLifecycleEvents[task.task.uid]?.let {
             it.startTime = time
             it.serverID = task.host?.uid.toString()
         }
     }
 
     public fun reportTaskFinished(time: Long, task: TaskState) {
-        taskLifecycleEvents[task.task]?.let {
+        taskLifecycleEvents[task.task.uid]?.let {
             it.finishTime = time
             taskLifecycleWriter.write(it)
         }

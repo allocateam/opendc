@@ -261,7 +261,6 @@ public class StageWorkflowService(
                 }
 
                 incomingTasks += task
-                eventFlow.emit(WorkflowEvent.TaskSubmitted(this, jobInstance.job, task, clock.millis()))
                 rootListener.taskReady(task)
             }
         }
@@ -279,6 +278,7 @@ public class StageWorkflowService(
 
             taskIterator.remove()
             taskQueue.add(taskInstance)
+            eventFlow.emit(WorkflowEvent.TaskSubmitted(this, taskInstance.job.job, taskInstance, clock.millis()))
         }
 
         // T3 Per task

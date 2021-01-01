@@ -70,9 +70,9 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
 
         val provisioningService = environment.platforms[0].zones[0].services[ProvisioningService] as SimpleProvisioningService
 
-        val schedulerAsync = testScope.async {
-            StageWorkflowService(
-                testScope,
+        testScope.launch {
+            val scheduler = StageWorkflowService(
+                this,
                 clock,
                 provisioningService,
                 mode = WorkflowSchedulerMode.Batch(100),
@@ -113,11 +113,8 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
                     else -> throw IllegalArgumentException("Unknown policy ${parent.allocationPolicy}")
                 },
             )
-        }
 
-        // attach monitor to scheduler
-        testScope.launch {
-            val scheduler = schedulerAsync.await()
+            // attach monitor to scheduler
             attachMonitor(
                 this,
                 clock,
@@ -125,12 +122,9 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
                 monitor,
                 provisioningService
             )
-        }
 
-        testScope.launch {
             val tracePath = File(experiment.traces.absolutePath, parent.workload.name).absolutePath
             val reader = WtfTraceReader(tracePath)
-            val scheduler = schedulerAsync.await()
 
             monitor.reportRunStarted(clock.millis())
             while (reader.hasNext()) {
@@ -139,13 +133,13 @@ public data class Run(override val parent: Scenario, val id: Int, val seed: Int)
                 delay(max(0, time * 1000 - clock.millis()))
                 scheduler.submit(job)
             }
+            monitor.reportRunFinished(clock.millis())
         }
 
         try {
             testScope.advanceUntilIdle()
             testScope.uncaughtExceptions.forEach { it.printStackTrace() }
         } finally {
-            monitor.reportRunFinished(clock.millis())
             monitor.close()
         }
     }
