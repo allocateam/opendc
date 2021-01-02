@@ -25,14 +25,12 @@ class IdleTimeMetric(Metric):
         unused_servers = topology_size - len(server_stats)
         unused_server_time = job_df.finish_time.max() * unused_servers
         if unused_servers > 0:
-            print("Warning: unused servers are not considered for idle time")
+            print(f"Warning: topology not fully utilised ({unused_servers} machine(s) that are 100% idle)")
             print("topology: {}, allocation policy: {}, workload: {}".format(
                 run.topology,
                 run.allocation_policy,
                 run.workload_name
             ))
-            print("Unused servers:", unused_servers)
             print()
         idle_time_per_server = (server_stats.idle_time.sum() + unused_server_time) / topology_size
-        print(idle_time_per_server / job_df.finish_time.max() * 100)
         yield idle_time_per_server / job_df.finish_time.max() * 100
