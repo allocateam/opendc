@@ -8,9 +8,10 @@ from typing import List, Dict, Type
 import pandas as pd
 import seaborn as sns
 
-import metrics
 from metrics import Metric, Plot
-
+from metrics.plot import MetricWorkloadBarPlot as bar_plot
+from metrics.plot import MetricWorkloadViolinPlot as violin_plot
+import metrics
 
 def iter_runs(experiments):
     for portfolio_id in experiments['portfolio_id'].unique():
@@ -25,10 +26,9 @@ class Plotter:
     OUTPUT_PATH = f"{Path(__file__).parent.resolve()}/results/{datetime.now():%Y-%m-%d-%H-%M-%S}"
 
     def __init__(self,
-                 metric_classes: List[Type[Metric]],
                  plot_classes: Dict[Type[Metric], List[Type[Plot]]],
                  path: Path):
-        self.metric_classes = metric_classes
+        self.metric_classes = list(plot_classes.keys())
         self.plot_classes = plot_classes
         self.path = path
 
@@ -69,29 +69,20 @@ def main():
     )
     args = parser.parse_args()
 
-    plot_types = [
-        metrics.plot.MetricWorkloadBarPlot,
-        metrics.plot.MetricWorkloadViolinPlot
-    ]
-
-    all_metrics = [
-        metrics.JobTurnaroundTimeMetric,
-        metrics.TaskThroughputMetric,
-        metrics.PowerConsumptionMetric,
-        metrics.IdleTimeMetric,
-        metrics.JobWaitingTimeMetric,
-        metrics.JobMakespanMetric,
-    ]
-
     all_plots = {
-        m: plot_types for m in all_metrics
+        metrics.JobTurnaroundTimeMetric: [bar_plot, violin_plot],
+        metrics.TaskThroughputMetric: [bar_plot, violin_plot],
+        metrics.PowerConsumptionMetric: [bar_plot, violin_plot],
+        metrics.IdleTimeMetric: [bar_plot],
+        metrics.JobWaitingTimeMetric: [bar_plot, violin_plot],
+        metrics.JobMakespanMetric: [bar_plot, violin_plot],
     }
 
     sns.set(
         style="darkgrid",
         font_scale=1.6
     )
-    plotter = Plotter(all_metrics, all_plots, args.path)
+    plotter = Plotter(all_plots, args.path)
     plotter.plot_all()
 
 
