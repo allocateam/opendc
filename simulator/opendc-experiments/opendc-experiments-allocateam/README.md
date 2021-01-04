@@ -77,3 +77,20 @@ parquet-tools cat --json data/experiments.parquet > ./data/experiments.json
 # Inside opendc/simulator/opendc-experiments/opendc-experiments-allocateam
 ../../gradlew clean test
 ```
+
+## Verify reproducibility
+
+> [verify_reproducibility.py] aims to verify the reproducibility of the Allocateam experiment,
+by first running the experiment three times in setting 3 (medium topology, spec_trace 2, all metrics).
+We then assert that the metrics produced by the three runs are equivalent.
+
+To run the `verify_reproducibility.py` script:
+
+```bash
+# Run the experiment 
+# (setting 3, with 3 allegedly identical runs that will be verified on their equality)
+./tools/run.sh verifyReproducibility
+
+# Run the verify reproducibility script
+python3 ./tools/plot/verify_reproducibility.py data/
+```
