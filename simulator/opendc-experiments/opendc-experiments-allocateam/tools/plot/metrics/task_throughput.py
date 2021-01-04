@@ -9,7 +9,6 @@ class TaskThroughputMetric(Metric):
         self.x_axis_label = "Task throughput (tasks per hour)"
 
     def get_data(self, run):
-        run_duration = pd.read_parquet(metric_path("run-duration", run)).run_duration[0]
         task_df = pd.read_parquet(metric_path("task-lifecycle", run))
-        print(run.topology, run.workload_name, len(task_df))
-        yield len(task_df) / (run_duration // 1000 // 60 // 60)
+        run_duration = task_df.finish_time.max()
+        yield len(task_df) / ((run_duration // 1000) / 60 / 60)

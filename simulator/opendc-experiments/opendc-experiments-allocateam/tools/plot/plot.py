@@ -71,7 +71,7 @@ def main():
 
     all_plots = {
         metrics.JobTurnaroundTimeMetric: [bar_plot, violin_plot],
-        metrics.TaskThroughputMetric: [bar_plot, violin_plot],
+        metrics.TaskThroughputMetric: [bar_plot],
         metrics.PowerConsumptionMetric: [bar_plot, violin_plot],
         metrics.IdleTimeMetric: [bar_plot],
         metrics.JobWaitingTimeMetric: [bar_plot, violin_plot],
