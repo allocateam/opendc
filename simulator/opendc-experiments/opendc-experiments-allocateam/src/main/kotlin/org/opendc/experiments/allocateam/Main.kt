@@ -12,6 +12,7 @@ import mu.KotlinLogging
 import org.opendc.experiments.allocateam.experiment.AllocateamPortfolio
 import org.opendc.experiments.allocateam.experiment.Experiment
 import org.opendc.experiments.allocateam.experiment.Portfolio
+import org.opendc.experiments.allocateam.experiment.VerifyReproducibilityPortfolio
 import org.opendc.experiments.sc20.reporter.ConsoleExperimentReporter
 import org.opendc.experiments.sc20.runner.ExperimentDescriptor
 import org.opendc.experiments.sc20.runner.execution.ThreadPoolExperimentScheduler
@@ -40,6 +41,8 @@ public class ExperimentCli : CliktCommand(name = "allocateam") {
     private val portfolios by option("--portfolio", help = "portfolio of scenarios to explore")
         .choice(
             "smokeTest" to { experiment: Experiment, i: Int -> AllocateamPortfolio(experiment, i) }
+                as (Experiment, Int) -> Portfolio,
+            "verifyReproducibility" to { experiment: Experiment, i: Int -> VerifyReproducibilityPortfolio(experiment, i) }
                 as (Experiment, Int) -> Portfolio,
             ignoreCase = true
         )
