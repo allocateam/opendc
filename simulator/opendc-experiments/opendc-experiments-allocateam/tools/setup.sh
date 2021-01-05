@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-
+# This script downloads the traces.
+# Usage: ./tools/setup.sh
 
 tracesDir="$( cd "$(dirname "$0")/../" > /dev/null 2>&1 || exit ; pwd -P )/src/main/resources/traces"
 
