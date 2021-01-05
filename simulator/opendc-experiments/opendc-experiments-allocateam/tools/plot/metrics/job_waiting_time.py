@@ -4,14 +4,14 @@ import math
 
 
 class JobWaitingTimeMetric(Metric):
-    def __init__(self, plot, runs):
-        super().__init__(plot, runs)
+    def __init__(self, plot, scenarios):
+        super().__init__(plot, scenarios)
         self.name = "job_waiting_time"
         self.x_axis_label = "Job waiting time (in seconds)"
 
-    def get_data(self, run):
-        job_df = pd.read_parquet(metric_path("job-lifecycle", run))
-        task_df = pd.read_parquet(metric_path("task-lifecycle", run))
+    def get_data(self, scenario):
+        job_df = pd.read_parquet(metric_path("job-lifecycle", scenario))
+        task_df = pd.read_parquet(metric_path("task-lifecycle", scenario))
 
         for _, job in job_df.iterrows():
             tasks = task_df[task_df.job_id == job.job_id]

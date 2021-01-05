@@ -4,14 +4,14 @@ import math
 
 
 class JobMakespanMetric(Metric):
-    def __init__(self, plot, runs):
-        super().__init__(plot, runs)
+    def __init__(self, plot, scenarios):
+        super().__init__(plot, scenarios)
         self.name = "job_makespan"
         self.x_axis_label = "Job makespan (seconds)"
 
-    def get_data(self, run):
-        job_df = pd.read_parquet(metric_path("job-lifecycle", run))
-        task_df = pd.read_parquet(metric_path("task-lifecycle", run))
+    def get_data(self, scenario):
+        job_df = pd.read_parquet(metric_path("job-lifecycle", scenario))
+        task_df = pd.read_parquet(metric_path("task-lifecycle", scenario))
 
         for job_id in job_df.job_id.unique():
             tasks = task_df[task_df.job_id == job_id]

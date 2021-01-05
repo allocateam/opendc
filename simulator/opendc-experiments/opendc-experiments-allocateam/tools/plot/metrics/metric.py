@@ -8,9 +8,9 @@ from pathlib import Path
 BASE_DATA_PATH = (Path(__file__).parent / "../../../data").resolve()
 
 
-def metric_path(name, run):
+def metric_path(name, scenario):
     partition = "portfolio_id={}/scenario_id={}/run_id={}".format(
-        run.portfolio_id, run.scenario_id, run.run_id
+        scenario.portfolio_id, scenario.scenario_id, scenario.run_id
     )
     return Path(BASE_DATA_PATH) / name / partition / "data.parquet"
 
@@ -41,5 +41,5 @@ class Metric(ABC):
             plot().generate(df, self, plotter, self.x_axis_label)
 
     @abstractmethod
-    def get_data(self, run):
+    def get_data(self, scenario):
         pass
