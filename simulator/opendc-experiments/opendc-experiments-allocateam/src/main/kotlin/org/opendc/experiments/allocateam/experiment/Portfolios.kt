@@ -33,11 +33,11 @@ public class AllocateamPortfolio(parent: Experiment, id: Int) : Portfolio(parent
 }
 
 /**
- * This portfolio only consists of setting 3, and is used to verify the reproducibility of the Allocateam experiment,
+ * This portfolio only consists of setting 3, and is used to verify the repeatability of the Allocateam experiment,
  * by running setting 3 three times. The output is then compared in a separate Python module in
- * tools/plot/verify_reproducibility.py.
+ * tools/plot/verify_repeatability.py.
  */
-public class VerifyReproducibilityPortfolio(parent: Experiment, id: Int) : Portfolio(parent, id, "VerifyReproducibilityPortfolio") {
+public class VerifyRepeatabilityPortfolio(parent: Experiment, id: Int) : Portfolio(parent, id, "VerifyRepeatabilityPortfolio") {
     override val topologies: List<Topology> = listOf(
         Topology("medium"),
     )

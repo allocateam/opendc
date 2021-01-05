@@ -78,19 +78,19 @@ parquet-tools cat --json data/experiments.parquet > ./data/experiments.json
 ../../gradlew clean test
 ```
 
-## Verify reproducibility
+## Verify repeatability
 
-> [verify_reproducibility.py] aims to verify the reproducibility of the Allocateam experiment,
+> [verify_repeatability.py] aims to verify the repeatability of the Allocateam experiment,
 by first running the experiment three times in setting 3 (medium topology, spec_trace 2, all metrics).
 We then assert that the metrics produced by the three runs are equivalent.
 
-To run the `verify_reproducibility.py` script:
+To run the `verify_repeatability.py` script:
 
 ```bash
 # Run the experiment 
 # (setting 3, with 3 allegedly identical runs that will be verified on their equality)
-./tools/run.sh verifyReproducibility
+./tools/run.sh verifyRepeatability
 
-# Run the verify reproducibility script
-python3 ./tools/plot/verify_reproducibility.py data/
+# Run the verify repeatability script
+python3 ./tools/plot/verify_repeatability.py data/
 ```

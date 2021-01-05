@@ -1,4 +1,4 @@
-"""This module aims to verify the reproducibility of the Allocateam experiment,
+"""This module aims to verify the repeatability of the Allocateam experiment,
 by first running the experiment three times in setting 3 (medium topology, spec_trace 2, all metrics).
 We then assert that the metrics produced by the three runs are equivalent.
 """
@@ -61,7 +61,7 @@ def assert_equality(metrics_per_run: Dict[int, List[pd.DataFrame]]):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Verify reproducibility for the Allocateam experiment.")
+    parser = argparse.ArgumentParser(description="Verify repeatability for the Allocateam experiment.")
     parser.add_argument(
         "path",
         nargs='?',
@@ -85,5 +85,5 @@ def main():
 
 
 if __name__ == "__main__":
-    """Usage: python3 verify_reproducibility.py <path_to_data_dir>"""
+    """Usage: python3 verify_repeatability.py <path_to_data_dir>"""
     main()
