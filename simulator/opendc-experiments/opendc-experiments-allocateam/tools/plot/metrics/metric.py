@@ -21,6 +21,7 @@ class Metric(ABC):
         self.plots = plots
         self.scenarios = scenarios
         self.x_axis_label = "no label"
+        self.df_cache = None
 
     def metric_dataframe(self) -> pd.DataFrame:
         result = []
@@ -36,9 +37,10 @@ class Metric(ABC):
         return pd.DataFrame.from_dict(result)
 
     def generate_plot(self, plotter):
-        df = self.metric_dataframe()
+        if self.df_cache is None:
+            self.df_cache = self.metric_dataframe()
         for plot in self.plots:
-            plot().generate(df, self, plotter, self.x_axis_label)
+            plot().generate(self.df_cache, self, plotter, self.x_axis_label)
 
     @abstractmethod
     def get_data(self, scenario):

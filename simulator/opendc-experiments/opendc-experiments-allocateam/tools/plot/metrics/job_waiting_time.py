@@ -7,7 +7,7 @@ class JobWaitingTimeMetric(Metric):
     def __init__(self, plot, scenarios):
         super().__init__(plot, scenarios)
         self.name = "job_waiting_time"
-        self.x_axis_label = "Job waiting time (in seconds)"
+        self.x_axis_label = "Job waiting time (seconds)"
 
     def get_data(self, scenario):
         job_df = pd.read_parquet(metric_path("job-lifecycle", scenario))
